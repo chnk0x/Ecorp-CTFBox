@@ -2,7 +2,7 @@
   <h1>Ecorp-CTF-2026</h1>
   <p><strong>Operation E Corp Breach</strong> — a six-stage, story-driven cybersecurity capture-the-flag range.</p>
   <p><em>Follow one incident from a forged alert to a compromised Linux host.</em></p>
-  <img src="./docs/assets/ecorp-ctf-2026-banner.svg" alt="Ecorp-CTF-2026 — Operation E Corp Breach" width="100%">
+  <img src="./docs/assets/ecorp-ctf-2026-banner.svg" alt="Ecorp-CTF-Arena — Operation E Corp Breach" width="100%">
   <br><br>
   <a href="https://img.shields.io/badge/stages-6-5CFFC0?style=for-the-badge&amp;labelColor=06151b"><img alt="6 stages" src="https://img.shields.io/badge/stages-6-5CFFC0?style=for-the-badge&amp;labelColor=06151b"></a>
   <a href="https://img.shields.io/badge/base_points-1%2C000-2EE6FF?style=for-the-badge&amp;labelColor=06151b"><img alt="1,000 base points" src="https://img.shields.io/badge/base_points-1%2C000-2EE6FF?style=for-the-badge&amp;labelColor=06151b"></a>
@@ -502,7 +502,7 @@ Ideas for future versions (**not yet implemented**):
 
 | Member | Contribution |
 |---|---|
-| **Member 01 — Chanuka Nuwan** [![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/chnk0x) | CTF Platform & Architecture: platform interface and API, deployment topology, server-side flag validation and stage progression, isolation and reset design. |
+| **Member 01 — Chanuka** [![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/chnk0x) | CTF Platform & Architecture: platform interface and API, deployment topology, server-side flag validation and stage progression, isolation and reset design. |
 | **Member 02 — Danidu** [![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/Danidu-S) | Challenge Design A — EC-01 to EC-03: digital forensics, steganography, and cryptography stages; evidence, build logic, and intended solve paths. |
 | **Member 03 — Praween** [![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/IT24103798) | Challenge Design B — EC-04 to EC-06: web portal, network capture, and Linux/SSH stages; target services and stage evidence. |
 | **Member 04 — Christina** [![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/ChristinaPerera) | Integration, Testing & Documentation: end-to-end stage integration, validation and recovery checks, test evidence, and project documentation. |
