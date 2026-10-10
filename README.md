@@ -1,500 +1,202 @@
-# Operation E Corp Breach
+<div align="center">
+  <img src="docs/assets/ecorp-ctf-2026-banner.svg" alt="Ecorp-CTF-2026 cyber range banner" width="100%">
+  <h1>Ecorp-CTF-2026</h1>
+  <p><strong>Operation E Corp Breach</strong> · A six-stage, story-driven cybersecurity capture-the-flag range</p>
+  <p><code>6 CONNECTED MISSIONS</code> &nbsp; <code>6 SECURITY DOMAINS</code> &nbsp; <code>1,000 BASE POINTS</code></p>
+</div>
 
-> A six-stage cybersecurity Capture the Flag challenge based on investigating a fictional corporate security breach.
+> Follow the incident from a forged alert to a compromised Linux host. Each recovered clue opens the next lead; each accepted flag advances the investigation.
 
-## Project Overview
+**This is an intentionally vulnerable training lab.** It uses fictional data and loopback-only Docker port mappings. Keep it isolated—do not expose the targets to a public network or use them against real systems.
 
-Operation E Corp Breach is an educational Capture the Flag (CTF) platform designed to help participants develop practical cybersecurity investigation skills.
+## Contents
 
-E Corp has been compromised by an unknown attacker. Participants act as cybersecurity investigators responsible for examining suspicious evidence, identifying vulnerabilities, analyzing compromised systems, and recovering six hidden flags.
+- [Mission brief](#mission-brief)
+- [The six-stage investigation](#the-six-stage-investigation)
+- [Platform capabilities](#platform-capabilities)
+- [How the pieces connect](#how-the-pieces-connect)
+- [Launch the isolated range](#launch-the-isolated-range)
+- [Build and verify challenge evidence](#build-and-verify-challenge-evidence)
+- [Project layout](#project-layout)
+- [Motion, accessibility, and visual design](#motion-accessibility-and-visual-design)
+- [Security and handling notes](#security-and-handling-notes)
+- [Troubleshooting](#troubleshooting)
 
-Each challenge represents a different stage of the investigation and introduces a specific cybersecurity domain.
+## Mission brief
 
-## Scenario
+E Corp has reported a suspicious security alert, unexplained data movement, and a missing incident report. Investigators work through six linked exercises, moving from digital evidence to a live fictional portal, then into a packet capture and Linux host.
 
-An E Corp employee receives a suspicious security alert. Following this initial incident, investigators discover hidden information inside an image, encrypted attacker communications, an exposed employee portal, suspicious network traffic, and evidence on a compromised Linux server.
+The range combines a responsive web platform with a Flask JSON API, SQLite-backed player progress, gated evidence downloads, and two deliberately vulnerable target services. It is designed for guided demonstrations, classroom labs, and small-team CTF exercises.
 
-Players must connect these clues to reconstruct the attack and complete the investigation.
+### Technology stack
 
-### Investigation Flow
-
-```text
-Suspicious Phishing Email
-          ↓
-Hidden Information Inside an Image
-          ↓
-Encrypted Attacker Communication
-          ↓
-Compromised Employee Web Portal
-          ↓
-Suspicious Network Traffic
-          ↓
-Compromised Linux Server
-```
-
-## Project Objectives
-
-- Provide practical experience across multiple cybersecurity domains.
-- Teach participants how to investigate a realistic security incident.
-- Develop analytical thinking and problem-solving skills.
-- Demonstrate how individual security weaknesses can contribute to a larger breach.
-- Introduce common cybersecurity tools and investigation techniques.
-- Provide an educational environment for practicing ethical security analysis.
-
-## Target Audience
-
-This CTF is designed for:
-
-- Undergraduate cybersecurity students.
-- Information technology students.
-- Beginners interested in ethical hacking.
-- Participants with basic Linux and networking knowledge.
-- Students learning digital forensics, cryptography, and web security.
-
-## Challenge Overview
-
-| Stage | Challenge | Cybersecurity Domain | Difficulty | Points |
-|---|---|---|---|---:|
-| EC-01 | The Forged Security Alert | Digital Forensics | Easy | 100 |
-| EC-02 | The Password-Protected Image | Steganography | Easy | 100 |
-| EC-03 | The Three-Layer Attacker Message | Cryptography | Moderate | 150 |
-| EC-04 | The Compromised Employee Portal | Web Security | Moderate | 150 |
-| EC-05 | Tracing the Data Exfiltration | Networking | Moderate–Hard | 200 |
-| EC-06 | The Final Breach Investigation | Linux / System Security | Hard | 300 |
-| **Total** | **6 Challenges** | **6 Domains** | **Progressive Difficulty** | **1,000** |
-
-## Challenge Descriptions
-
-### EC-01: The Forged Security Alert
-
-**Domain:** Digital Forensics  
-**Difficulty:** Easy  
-**Points:** 100
-
-An E Corp employee receives a suspicious email claiming to originate from the internal security team.
-
-Participants investigate the email to identify phishing indicators and determine whether the message is legitimate.
-
-**Skills assessed:**
-
-- Email header analysis.
-- Sender verification.
-- Phishing detection.
-- Evidence identification.
-
-**Suggested tools:**
-
-- Text editor.
-- Email viewer.
-- Linux terminal.
-- `grep`.
-
-### EC-02: The Password-Protected Image
-
-**Domain:** Steganography  
-**Difficulty:** Easy  
-**Points:** 100
-
-Investigators discover a company image associated with the suspicious email. Although it appears ordinary, the image contains hidden information.
-
-Participants must examine the image and extract its concealed contents.
-
-**Skills assessed:**
-
-- Image metadata analysis.
-- Hidden file discovery.
-- Steganography techniques.
-- Password clue identification.
-
-**Suggested tools:**
-
-- ExifTool.
-- Steghide.
-- Linux terminal.
-- Image metadata viewers.
-
-### EC-03: The Three-Layer Attacker Message
-
-**Domain:** Cryptography  
-**Difficulty:** Moderate  
-**Points:** 150
-
-The hidden image reveals an attacker communication protected by multiple encoding and encryption layers.
-
-Participants must identify the transformations and reverse them in the correct order.
-
-**Skills assessed:**
-
-- Base64 decoding.
-- Hexadecimal decoding.
-- Classical cipher analysis.
-- Multi-layer cryptographic problem solving.
-
-**Suggested tools:**
-
-- CyberChef.
-- Python.
-- Base64 decoder.
-- Hexadecimal decoder.
-- Vigenère cipher tools.
-
-### EC-04: The Compromised Employee Portal
-
-**Domain:** Web Security  
-**Difficulty:** Moderate  
-**Points:** 150
-
-The attacker’s communication leads investigators to an E Corp employee portal containing exposed resources and improperly protected information.
-
-Participants investigate the application and identify the relevant incident record.
-
-**Skills assessed:**
-
-- Web resource discovery.
-- Application enumeration.
-- API analysis.
-- Broken access control identification.
-- Exposed configuration investigation.
-
-**Suggested tools:**
-
-- Web browser.
-- Browser developer tools.
-- `curl`.
-- Postman.
-- Burp Suite Community Edition.
-
-### EC-05: Tracing the Data Exfiltration
-
-**Domain:** Networking  
-**Difficulty:** Moderate–Hard  
-**Points:** 200
-
-Investigators obtain a packet capture containing network traffic associated with the E Corp breach.
-
-Participants analyze the traffic to identify suspicious communications and recover evidence relevant to the compromised server.
-
-**Skills assessed:**
-
-- Packet capture analysis.
-- Protocol filtering.
-- TCP stream reconstruction.
-- Identification of insecure communications.
-- Network-based evidence correlation.
-
-**Suggested tools:**
-
-- Wireshark.
-- TShark.
-- `tcpdump`.
-- Network protocol filters.
-
-### EC-06: The Final Breach Investigation
-
-**Domain:** Linux / System Security  
-**Difficulty:** Hard  
-**Points:** 300
-
-The final stage takes participants to a compromised Linux environment containing hidden files, suspicious logs, a simulated scheduled task, and protected evidence.
-
-Participants combine information from previous stages to complete the investigation.
-
-**Skills assessed:**
-
-- Linux command-line navigation.
-- Hidden file discovery.
-- Log analysis.
-- Scheduled task inspection.
-- Archive extraction.
-- Incident reconstruction.
-
-**Suggested tools:**
-
-- SSH.
-- `ls`.
-- `find`.
-- `grep`.
-- `cat`.
-- `crontab`.
-- `unzip`.
-
-## Difficulty Progression
-
-| Stage Range | Difficulty | Purpose |
-|---|---|---|
-| Stages 1–2 | Easy | Introduce the storyline and basic investigation techniques. |
-| Stages 3–4 | Moderate | Require participants to apply cybersecurity tools and analytical methods. |
-| Stage 5 | Moderate–Hard | Combine network analysis with evidence correlation. |
-| Stage 6 | Hard | Integrate information from earlier stages into a final investigation. |
-
-## Flag Format
-
-All challenge flags follow this format:
-
-```text
-ECORP{flag_description}
-```
-
-Example:
-
-```text
-ECORP{example_flag_format}
-```
-
-Flags must be submitted exactly as displayed, including:
-
-- Uppercase `ECORP` prefix.
-- Curly brackets.
-- Correct spelling.
-- Underscores where applicable.
-
-Actual challenge flags should not be published in this public repository.
-
-## Proposed Technology Stack
-
-### Platform
-
-- Python.
-- Flask.
-- Docker or Docker Compose.
-- Linux-based operating environment.
-- CTF scoring platform or custom flag-validation application.
-
-### Security and Investigation Tools
-
-- Wireshark.
-- TShark.
-- ExifTool.
-- Steghide.
-- CyberChef.
-- Burp Suite Community Edition.
-- OpenSSH.
-- `tcpdump`.
-- Standard Linux command-line utilities.
-
-### Development Tools
-
-- Visual Studio Code.
-- Git.
-- GitHub.
-- Python virtual environments.
-
-## Proposed Project Structure
-
-```text
-operation-ecorp-breach/
-│
-├── README.md
-├── docker-compose.yml
-├── requirements.txt
-├── .gitignore
-│
-├── challenges/
-│   │
-│   ├── stage-01-digital-forensics/
-│   │   ├── challenge.md
-│   │   └── evidence/
-│   │       └── suspicious_email.eml
-│   │
-│   ├── stage-02-steganography/
-│   │   ├── challenge.md
-│   │   └── evidence/
-│   │       └── company_event.jpg
-│   │
-│   ├── stage-03-cryptography/
-│   │   ├── challenge.md
-│   │   ├── evidence/
-│   │   │   └── attacker_message.txt
-│   │   └── scripts/
-│   │       └── generate_message.py
-│   │
-│   ├── stage-04-web-security/
-│   │   ├── challenge.md
-│   │   ├── app.py
-│   │   ├── templates/
-│   │   └── Dockerfile
-│   │
-│   ├── stage-05-networking/
-│   │   ├── challenge.md
-│   │   └── evidence/
-│   │       └── network_capture.pcap
-│   │
-│   └── stage-06-linux-security/
-│       ├── challenge.md
-│       ├── setup/
-│       ├── evidence/
-│       └── Dockerfile
-│
-├── platform/
-│   ├── app.py
-│   ├── templates/
-│   ├── static/
-│   └── validation/
-│
-├── docs/
-│   ├── architecture.md
-│   ├── challenge-specifications.md
-│   ├── deployment-guide.md
-│   ├── testing-plan.md
-│   └── risk-assessment.md
-│
-└── tests/
-    ├── test_challenges.py
-    ├── test_platform.py
-    └── test_integration.py
-```
-
-> This structure represents the intended implementation and may evolve during development.
-
-## Getting Started
-
-### 1. Clone the Repository
-
-```bash
-git clone <repository-url>
-```
-
-### 2. Open the Project Directory
-
-```bash
-cd operation-ecorp-breach
-```
-
-### 3. Create a Python Virtual Environment
-
-```bash
-python -m venv venv
-```
-
-### 4. Activate the Virtual Environment
-
-On Windows:
-
-```bash
-venv\Scripts\activate
-```
-
-On Linux or macOS:
-
-```bash
-source venv/bin/activate
-```
-
-### 5. Install Dependencies
-
-Once `requirements.txt` has been added:
-
-```bash
-pip install -r requirements.txt
-```
-
-### 6. Start the Platform
-
-If the project uses Flask:
-
-```bash
-python platform/app.py
-```
-
-If the project uses Docker Compose:
-
-```bash
-docker compose up --build
-```
-
-### 7. Access the Platform
-
-Open the configured local platform address in a browser:
-
-```text
-http://localhost:5000
-```
-
-The actual port and startup commands may change depending on the final implementation.
-
-## Team Roles and Responsibilities
-
-| Team Member | Responsibility | Main Contribution |
-|---|---|---|
-| Member 1 | CTF Platform and Architecture | Platform design, deployment, environment configuration, and infrastructure. |
-| Member 2 | Challenge Design A | Digital Forensics, Steganography, and Cryptography challenges. |
-| Member 3 | Challenge Design B | Web Security, Networking, and Linux Security challenges. |
-| Member 4 | Integration, Testing, and Documentation | Testing strategy, validation, risk assessment, and documentation. |
-
-All team members contribute to integration, review, and final project delivery.
-
-## Security Controls
-
-This project must be deployed only in an isolated educational environment.
-
-Recommended controls include:
-
-- Use fictional company information and fictional user accounts.
-- Do not include real passwords, personal data, or production credentials.
-- Restrict vulnerable services to a private lab network.
-- Disable unnecessary external network access.
-- Avoid deploying intentionally vulnerable services on public servers.
-- Use restricted accounts for Linux challenges.
-- Maintain clean backups and reset procedures.
-- Review packet captures to ensure they contain only synthetic traffic.
-- Keep organizer solutions and actual flags separate from public documentation.
-- Monitor service availability and challenge integrity.
-
-## Challenge Reset and Recovery
-
-| Stage | Recovery Method |
+| Layer | Technologies |
 |---|---|
-| EC-01 | Restore the original email evidence file. |
-| EC-02 | Restore the prepared image file. |
-| EC-03 | Restore or regenerate the encrypted message. |
-| EC-04 | Restart or redeploy the web application container. |
-| EC-05 | Restore the original synthetic packet capture. |
-| EC-06 | Restore a virtual-machine snapshot or rebuild the Linux challenge container. |
+| Interface | Semantic HTML, responsive CSS, vanilla JavaScript, inline SVG |
+| Platform API | Python 3.11, Flask, JSON endpoints |
+| State | SQLite, server-managed sessions and progression |
+| Range services | Docker Compose, separate Flask portal, isolated Linux/SSH target |
+| Organizer workflow | Bash and Python build, synchronization, and verification scripts |
 
-## Learning Outcomes
+## The six-stage investigation
 
-After completing the CTF, participants should be able to:
+| Stage | Mission | Domain | Base points | Evidence / activity |
+|---|---|---|---:|---|
+| **EC-01** | The Forged Security Alert | Digital forensics | 100 | Inspect a suspicious email and its headers. |
+| **EC-02** | The Password-Protected Image | Steganography | 100 | Examine image metadata and extract a hidden message. |
+| **EC-03** | The Three-Layer Attacker Message | Cryptography | 150 | Reverse layered Base64, hexadecimal, and Vigenère encoding. |
+| **EC-04** | The Compromised Employee Portal | Web security | 150 | Investigate exposed paths and intentionally broken access control. |
+| **EC-05** | Tracing the Data Exfiltration | Networking | 200 | Analyze a PCAP and follow the suspicious HTTP conversation. |
+| **EC-06** | The Final Breach Investigation | Linux / system security | 300 | Investigate a fictional SSH host, logs, hidden files, and a protected report. |
 
-1. Identify suspicious email characteristics and phishing indicators.
-2. Inspect image metadata and extract concealed information.
-3. Decode layered messages and apply basic cryptographic techniques.
-4. Identify exposed web resources and broken access controls.
-5. Analyze network traffic and reconstruct suspicious communications.
-6. Investigate Linux systems using standard command-line tools.
-7. Correlate evidence across multiple stages of a security incident.
-8. Explain how separate vulnerabilities contributed to a broader attack.
+The path is sequential: submit the current stage’s correct flag to unlock the next stage’s evidence and tools. The platform awards up to **1,000 base points** before hint deductions. The challenge cards and mission pages can be addressed individually with `?challenge=ec01` through `?challenge=ec06`.
 
-## Ethical Use
+## Platform capabilities
 
-This project is intended strictly for:
+- **Mission dossiers:** each stage has its own story, objectives, evidence area, hint panel, status, and flag form.
+- **Account and progress tracking:** player callsigns, solves, points, and hint costs are managed through the Flask API and SQLite.
+- **Server-side validation:** flag digests are checked on the server; responses report success or failure without returning the expected answer.
+- **Ordered unlocks:** requirements are checked against recorded solves, not browser-side state.
+- **Gated evidence:** the platform serves stage downloads through an access-controlled endpoint.
+- **Scoring and hints:** hints reveal progressively stronger clues, with the cost reflected in the player's score.
+- **Scoreboard:** accepted solves contribute to a shared ranking.
+- **Completion award:** solving all six stages reveals a personalized cyber-themed achievement badge, with SVG and PNG download options.
 
-- Academic coursework.
-- Authorized cybersecurity training.
-- Controlled Capture the Flag exercises.
-- Ethical security research within isolated environments.
+## How the pieces connect
 
-Do not use the tools or techniques described in this repository against systems without explicit authorization.
+```mermaid
+flowchart LR
+    P[Investigator] --> UI[Responsive HTML / CSS / JavaScript UI]
+    UI --> API[Flask JSON API]
+    API --> DB[(SQLite accounts and progress)]
+    API --> V[Server-side flag and unlock checks]
+    API --> E[Authenticated evidence downloads]
+    UI -. unlocked mission .-> WEB[EC-04 fictional Flask portal]
+    UI -. final mission .-> SSH[EC-06 isolated SSH host]
+    E --> PCAP[EC-05 packet capture]
+```
 
-## Project Status
+The browser presents the mission interface; the API owns the progression and scoring decisions. EC-04 and EC-06 are separate services in the Compose range. The key host ports are:
 
-**Current phase:** Challenge design and platform planning.
+| Component | Host address | Container service |
+|---|---|---|
+| CTF platform | `http://127.0.0.1:5001` | Flask on port `5000` |
+| EC-04 portal | `http://127.0.0.1:8081` | Flask on port `8080` |
+| EC-06 SSH target | `127.0.0.1:2223` | SSH on port `22` |
 
-The six-stage scenario, difficulty progression, domain selection, and investigation workflow have been defined. Implementation, testing, and deployment will be completed according to the approved project design.
+The Compose file binds host ports to `127.0.0.1`; the portal and SSH target are part of the fictional lab, not public internet services.
 
-## Academic Context
+## Launch the isolated range
 
-This project was developed as part of a cybersecurity coursework assignment requiring:
+### Requirements
 
-- A minimum of six cybersecurity challenges.
-- Coverage of at least four cybersecurity domains.
-- Progressive difficulty from easy to hard.
-- A connected investigation scenario.
-- Complete stage specifications.
-- Documented validation, hints, dependencies, and recovery procedures.
+- Docker Engine with the Docker Compose v2 plugin
+- A shell capable of running the included Bash scripts
 
-The proposed project includes six stages across six cybersecurity domains.
+### Start
+
+From the project root:
+
+```bash
+bash sync_artefacts.sh
+docker compose up -d --build
+```
+
+Open **http://127.0.0.1:5001**, create a callsign, and begin with EC-01. The portal and SSH target are reached later through the challenge clues and access cards.
+
+Useful operator commands:
+
+```bash
+docker compose ps                         # inspect service status
+docker compose logs -f platform           # follow platform logs
+docker compose logs -f ec04 ec06          # inspect target logs
+docker compose down                       # stop and remove the containers
+```
+
+The services use fictional accounts, flags, and evidence. Keep the loopback-only port mappings. If you intentionally change a host port, update the corresponding clue card, EC-03 generated message where applicable, integration notes, and verification checks together.
+
+## Build and verify challenge evidence
+
+The supplied archive already contains player-facing evidence. These commands are for organizers who are rebuilding or editing it.
+
+```bash
+bash build.sh                 # rebuild/check EC-01 to EC-03 artifacts
+bash sync_artefacts.sh        # copy player artifacts into the platform
+bash verify.sh                # run the organizer validation suite
+```
+
+The EC-02 builder uses steganography tooling; the EC-03 generator uses only Python's standard library. EC-05 traffic can be regenerated with `python3 stage05_network/generate_traffic.py` when its Scapy dependency is available. Re-run synchronization after changing a source artifact so the platform and EC-04 portal receive the same player-facing file.
+
+For the platform alone, see [`platform/README.md`](platform/README.md). Additional deployment and stage notes are in [`docs/`](docs/) and [`platform/INTEGRATION_NOTES.md`](platform/INTEGRATION_NOTES.md).
+
+## Project layout
+
+```text
+Ecorp-CTF-2026/
+├── README.md                         # project guide and operator quickstart
+├── docker-compose.yml                # loopback-only range topology
+├── build.sh                          # EC-01–EC-03 organizer build
+├── sync_artefacts.sh                 # publish/synchronize player evidence
+├── verify.sh                         # organizer validation checks
+├── docs/
+│   ├── assets/ecorp-ctf-2026-banner.svg
+│   ├── CTFD_SETUP.md
+│   └── STAGES_1-3_README.md
+├── platform/
+│   ├── app.py                        # Flask API, auth, progression, scoring
+│   ├── index.html                    # responsive mission interface
+│   ├── seed_flags.py                 # organizer flag-hash seeder
+│   ├── artefacts/                    # platform-served evidence
+│   └── secrets/                      # private server-side material
+├── stage01_forensics/                # email evidence
+├── stage02_stego/                    # image and hidden payload
+├── stage03_crypto/                   # layered message generator
+├── stage04_web/                      # fictional employee portal
+├── stage05_network/                  # PCAP generator and capture
+└── stage06_linux/                    # isolated Linux/SSH target
+```
+
+Each stage folder contains maintainer sources and, where applicable, separate `public/` and `private/` material. Keep private files out of player-facing downloads.
+
+## Motion, accessibility, and visual design
+
+The platform uses a dark operations-console visual language with mint/cyan accents, inline SVG iconography, responsive layouts, and restrained interaction feedback. Ambient background drift, the hero illustration, card hover states, and short modal/toast transitions add motion without relying on a continuous JavaScript animation loop. The interface honors `prefers-reduced-motion`, provides visible keyboard focus, uses semantic links for challenge navigation, and includes live status messaging for key actions.
+
+The README banner is a small self-contained SVG with a slow scan accent; it also stops its decorative motion when reduced motion is requested. No external font or JavaScript CDN is required for the platform UI.
+
+## Security and handling notes
+
+- **Training scope:** EC-04 intentionally demonstrates unsafe discovery and access-control behavior; EC-06 is a deliberately configured practice host. Run the range only in an isolated environment.
+- **Loopback exposure:** Compose publishes the host services on `127.0.0.1`. Do not change these bindings to `0.0.0.0` or forward them to an untrusted network.
+- **Organizer material:** `stage0*/private/`, `platform/seed_flags.py`, `platform/secrets/`, and some design/deployment documents contain answer or operator information. Do not include them in a player-only distribution.
+- **Synthetic data:** E Corp, people, credentials, incidents, and artifacts are fictional and intended only for this exercise.
+- **No production claim:** this is an educational CTF range, not a hardened production service.
+
+## Troubleshooting
+
+<details>
+<summary><strong>The platform page loads, but evidence or solves are unavailable</strong></summary>
+
+Check that the platform container is healthy with `docker compose ps`, then inspect `docker compose logs -f platform`. Confirm the evidence sync completed before starting the range.
+
+</details>
+
+<details>
+<summary><strong>The EC-04 portal or EC-06 SSH connection does not respond</strong></summary>
+
+Check the `ec04` and `ec06` services with `docker compose ps` and review their logs. Confirm that the host ports `8081` and `2223` are not already in use. The container ports remain `8080` and `22` respectively.
+
+</details>
+
+<details>
+<summary><strong>The EC-03 clue points to the wrong portal port</strong></summary>
+
+The decoded address comes from `stage03_crypto/private/plaintext.txt`. Regenerate the public message with `python3 stage03_crypto/generate_message.py`, then run `bash sync_artefacts.sh` and `bash verify.sh`.
+
+</details>
 
 ---
 
-**Operation E Corp Breach**  
-*Investigate the incident. Connect the evidence. Recover the flags.*
+<div align="center">
+  <sub>OPERATION E CORP · FOLLOW THE EVIDENCE · VERIFY EVERY FLAG · CLOSE THE INCIDENT</sub>
+</div>
