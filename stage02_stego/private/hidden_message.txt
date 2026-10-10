@@ -1,0 +1,7 @@
+ECORP INTERNAL - EVIDENCE RECOVERED FROM IMAGE
+
+The attacker left an encoded message on the staging host.
+Next artefact: attacker_message.txt
+Decryption key: NIGHTSHIFT
+
+FLAG: ECORP{st3g0_h1dd3n_1n_pl41n_s1ght}
