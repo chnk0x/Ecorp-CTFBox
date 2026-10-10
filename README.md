@@ -502,10 +502,10 @@ Ideas for future versions (**not yet implemented**):
 
 | Member | Contribution |
 |---|---|
-| **Member 01 — CTF Platform & Architecture** | Platform interface and API; deployment topology; server-side flag validation and stage progression; isolation and reset design. **Author:** Chanuka Nuwan (`chnk0x`). |
-| **Member 02 — Challenge Design A** | EC-01 to EC-03: digital forensics, steganography, and cryptography stages; their evidence, build logic, and intended solve paths. |
-| **Member 03 — Challenge Design B** | EC-04 to EC-06: web portal, network capture, and Linux/SSH stages; target services and stage evidence. |
-| **Member 04 — Integration, Testing & Documentation** | End-to-end stage integration, validation and recovery checks, test evidence, and project documentation. |
+| **Member 01 — Chanuka Nuwan** ([GitHub](https://github.com/chnk0x)) | CTF Platform & Architecture: platform interface and API, deployment topology, server-side flag validation and stage progression, isolation and reset design. |
+| **Member 02 — Danidu** ([GitHub](https://github.com/Danidu-S)) | Challenge Design A — EC-01 to EC-03: digital forensics, steganography, and cryptography stages; evidence, build logic, and intended solve paths. |
+| **Member 03 — Praween** ([GitHub](https://github.com/IT24103798)) | Challenge Design B — EC-04 to EC-06: web portal, network capture, and Linux/SSH stages; target services and stage evidence. |
+| **Member 04 — Christina** ([GitHub](https://github.com/ChristinaPerera)) | Integration, Testing & Documentation: end-to-end stage integration, validation and recovery checks, test evidence, and project documentation. |
 
 *The contribution rows follow the team's assigned project roles. Add or adjust teammate names only after confirming them with the team.*
 
