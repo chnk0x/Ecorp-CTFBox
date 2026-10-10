@@ -1,0 +1,5 @@
+ECORP INTERNAL - ATTACKER NOTE
+Employee portal compromised. Access node ready.
+Portal: http://127.0.0.1:8080
+Employee ID: 1042
+FLAG: ECORP{l4y3r3d_crypt0_vig3n3r3_h3x_b4s364}
