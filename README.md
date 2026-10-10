@@ -1,8 +1,8 @@
 <div align="center">
-  <h1>Ecorp-CTF-2026</h1>
+  <h1>Ecorp-CTF-Arena</h1>
   <p><strong>Operation E Corp Breach</strong> — a six-stage, story-driven cybersecurity capture-the-flag range.</p>
   <p><em>Follow one incident from a forged alert to a compromised Linux host.</em></p>
-  <img src="./docs/assets/ecorp-ctf-2026-banner.svg" alt="Ecorp-CTF-Arena — Operation E Corp Breach" width="100%">
+  <img src="./docs/assets/ecorp-ctf-arena-banner.svg" alt="Ecorp-CTF-Arena — Operation E Corp Breach" width="100%">
   <br><br>
   <a href="https://img.shields.io/badge/stages-6-5CFFC0?style=for-the-badge&amp;labelColor=06151b"><img alt="6 stages" src="https://img.shields.io/badge/stages-6-5CFFC0?style=for-the-badge&amp;labelColor=06151b"></a>
   <a href="https://img.shields.io/badge/base_points-1%2C000-2EE6FF?style=for-the-badge&amp;labelColor=06151b"><img alt="1,000 base points" src="https://img.shields.io/badge/base_points-1%2C000-2EE6FF?style=for-the-badge&amp;labelColor=06151b"></a>
@@ -38,7 +38,7 @@
 - [Troubleshooting](#-troubleshooting)
 - [FAQ](#-faq)
 - [Roadmap](#-roadmap)
-- [Author and team contributions](#-author-and-team-contributions)
+- [Team Contribution](#-team-contribution)
 
 ---
 
@@ -354,14 +354,14 @@ For the platform service, see [`platform/README.md`](platform/README.md). Additi
 ## 🗂️ Project layout
 
 ```text
-Ecorp-CTF-2026/
+Ecorp-CTF-Arena/
 ├── README.md                         # project guide and operator quickstart
 ├── docker-compose.yml                # loopback-only range topology
 ├── build.sh                          # EC-01–EC-03 organizer build
 ├── sync_artefacts.sh                 # synchronize player evidence
 ├── verify.sh                         # organizer validation checks
 ├── docs/
-│   ├── assets/ecorp-ctf-2026-banner.svg
+│   ├── assets/ecorp-ctf-arena-banner.svg
 │   ├── CTFD_SETUP.md
 │   └── STAGES_1-3_README.md
 ├── platform/
@@ -454,7 +454,7 @@ The supplied Compose file does not mount a persistent database volume. Run `dock
 <details>
 <summary><strong>The banner image does not show on GitHub</strong></summary>
 
-Confirm that `docs/assets/ecorp-ctf-2026-banner.svg` exists in the repository with the same letter case and is committed. The README uses a repository-relative image path.
+Confirm that `docs/assets/ecorp-ctf-arena-banner.svg` exists in the repository with the same letter case and is committed. The README uses a repository-relative image path.
 
 </details>
 
@@ -491,14 +491,7 @@ Ideas for future versions (**not yet implemented**):
 
 ---
 
-## 👤 Author and team contributions
-
-**Chanuka Nuwan** (`chnk0x`) — cybersecurity undergraduate at SLIIT; **Member 01, CTF Platform & Architecture**.
-
-[![GitHub](https://img.shields.io/badge/GitHub-chnk0x-181717?style=flat-square&logo=github)](https://github.com/chnk0x)  
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Chanuka_Nuwan-0A66C2?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/chanuka-nuwan-1a07b8393)
-
-### Member contributions
+## 👥 Team Contribution
 
 | Member | Contribution |
 |---|---|
@@ -507,7 +500,7 @@ Ideas for future versions (**not yet implemented**):
 | **Member 03 — Praween** [![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/IT24103798) | Challenge Design B — EC-04 to EC-06: web portal, network capture, and Linux/SSH stages; target services and stage evidence. |
 | **Member 04 — Christina** [![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/ChristinaPerera) | Integration, Testing & Documentation: end-to-end stage integration, validation and recovery checks, test evidence, and project documentation. |
 
-*The contribution rows follow the team's assigned project roles. Add or adjust teammate names only after confirming them with the team.*
+*The roles shown summarize each member's assigned project contribution.*
 
 Feedback, issues, and stage ideas are welcome.
 
