@@ -42,6 +42,13 @@ def index():
 def robots():
     return Response("User-agent: *\nDisallow: /backup/\n", mimetype="text/plain")
 
+@app.route("/backup/")
+def backup_index():
+    #misconfiguration: the server lists the folder's contents
+    return Response('<h1>Index of /backup/</h1><ul>'
+                    '<li><a href="/backup/config.bak">config.bak</a></li></ul>',
+                    mimetype="text/html")
+
 @app.route("/backup/config.bak")
 def backup():
     return Response(BACKUP_TEXT, mimetype="text/plain")
