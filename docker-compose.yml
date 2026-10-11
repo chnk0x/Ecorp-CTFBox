@@ -1,0 +1,30 @@
+# Operation E Corp Breach
+# Start using: docker compose up -d --build
+# All services are accessible only from localhost
+
+services:
+  platform:
+    build:
+      context: ./platform
+    container_name: ecorp-platform
+    ports:
+      - "127.0.0.1:5001:5000"
+    restart: unless-stopped
+
+  ec04:
+    build:
+      context: ./stage04_web
+    container_name: ec04
+    environment:
+      EC04_FLAG: "ECORP{broken_access_control_774}"
+    ports:
+      - "127.0.0.1:8081:8080"
+    restart: unless-stopped
+
+  ec06:
+    build:
+      context: ./stage06_linux
+    container_name: ec06
+    ports:
+      - "127.0.0.1:2223:22"
+    restart: unless-stopped
