@@ -1,0 +1,149 @@
+==================================================
+E CORP CTF - MEMBER 4 TEST RESULTS
+==================================================
+
+Tester: Member 4
+Role: Integration, Testing & Documentation
+Environment: Kali Linux + Docker Compose
+
+--------------------------------------------------
+T01 - Stage 1 to Stage 2 Dependency
+--------------------------------------------------
+
+Test:
+Check whether Stage 1 gives the clue needed for Stage 2.
+
+Expected Result:
+The suspicious email should reveal ECORP-104.
+
+Actual Result:
+ECORP-104 was found in the email header.
+
+Stage 2 Password:
+ecorp104
+
+Result:
+PASS
+
+--------------------------------------------------
+T03 - Stage 2 to Stage 3 Dependency
+--------------------------------------------------
+
+Test:
+Check whether Stage 2 gives the key needed for Stage 3.
+
+Expected Result:
+The hidden image content should reveal NIGHTSHIFT.
+
+Actual Result:
+NIGHTSHIFT was successfully recovered.
+
+Result:
+PASS
+
+--------------------------------------------------
+T04 - Stage 3 to Stage 4 Dependency
+--------------------------------------------------
+
+Test:
+Decode attacker_message.txt using Base64, Hex and Vigenere.
+
+Expected Result:
+The decoded message should reveal employee ID 1042 and portal information.
+
+Actual Result:
+Employee ID 1042 was recovered and Stage 4 portal details were found.
+
+Result:
+PASS
+
+--------------------------------------------------
+T05 - Stage 4 Web Challenge
+--------------------------------------------------
+
+Test:
+Access and investigate the employee portal.
+
+Expected Result:
+The portal should load and lead to the Stage 5 evidence.
+
+Actual Result:
+The portal loaded successfully on port 8081 and the Stage 5 evidence was obtained.
+
+Result:
+PASS
+
+--------------------------------------------------
+T06 - Stage 5 Network Analysis
+--------------------------------------------------
+
+Test:
+Open network_capture.pcap in Wireshark.
+
+Expected Result:
+The HTTP traffic should reveal the Stage 5 flag and Stage 6 login details.
+
+Actual Result:
+The HTTP POST request revealed the flag and analyst credentials.
+
+Result:
+PASS
+
+--------------------------------------------------
+T07 - Stage 6 Linux Challenge
+--------------------------------------------------
+
+Test:
+Use the credentials from Stage 5 to access the Linux challenge.
+
+Expected Result:
+SSH login should work and the final archive should be recoverable.
+
+Actual Result:
+SSH login succeeded and final_report.txt was extracted.
+
+Result:
+PASS
+
+--------------------------------------------------
+T08 - End-to-End Integration
+--------------------------------------------------
+
+Test:
+Complete all six stages in sequence.
+
+Expected Result:
+EC-01 -> EC-02 -> EC-03 -> EC-04 -> EC-05 -> EC-06
+
+Actual Result:
+All six stages were completed successfully in the intended order.
+
+Result:
+PASS
+
+--------------------------------------------------
+T09 - Flag Validation
+--------------------------------------------------
+Test:
+Submit an intentionally incorrect flag.
+
+Input:
+ECORP{wrong_test_flag}
+
+Expected:
+The platform should reject the flag.
+
+Actual:
+The incorrect flag was rejected.
+
+Then:
+A valid challenge flag was submitted.
+
+Expected:
+The valid flag should be accepted.
+
+Actual:
+The valid flag was accepted.
+
+Result:
+PASS
