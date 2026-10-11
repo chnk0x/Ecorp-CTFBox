@@ -1,0 +1,4 @@
+platform/secrets/session.key
+platform/ctf.db
+__pycache__/
+*.pyc

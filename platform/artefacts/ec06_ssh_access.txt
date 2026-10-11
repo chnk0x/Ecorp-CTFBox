@@ -1,0 +1,18 @@
+E CORP - STAGE 6: THE FINAL BREACH INVESTIGATION
+================================================
+Stage 5 exposed an internal Linux host and a service account.
+
+CONNECT OVER SSH:
+    ssh analyst@127.0.0.1 -p 2222
+    password:  NightShift104
+(If this does not connect, the Linux container may be on another address -
+ ask your team/instructor for the correct one.)
+
+YOUR TASK
+  - List hidden files (ls -a) and read the reminder note.
+  - Search the system log for the incident reference ECORP-774.
+  - Check the scheduled task it points to, then open the
+    password-protected archive to recover the final report.
+  - The archive password combines two clues seen earlier in the operation.
+
+Submit the final flag below in the format ECORP{...}.

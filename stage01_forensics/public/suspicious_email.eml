@@ -1,0 +1,43 @@
+Return-Path: <noreply@ecorp-corp.com>
+Received: from mail.ecorp-secure-alert.com (unknown [203.0.113.47])
+	by mx.ecorp-corp.com (Postfix) with ESMTPS id 4A9F2C1E80
+	for <s.dominic@ecorp-corp.com>; Mon, 15 Sep 2026 08:42:11 +0530 (+0530)
+Received: from localhost (localhost [127.0.0.1])
+	by mail.ecorp-secure-alert.com (Postfix) with ESMTP id 118BD40A17;
+	Mon, 15 Sep 2026 08:42:09 +0530 (+0530)
+Authentication-Results: mx.ecorp-corp.com;
+	spf=fail (sender IP is 203.0.113.47) smtp.mailfrom=ecorp-corp.com;
+	dkim=none;
+	dmarc=fail (p=none) header.from=ecorp-corp.com
+Message-ID: <20260915084209.118BD40A17@ecorp-secure-alert.com>
+Date: Mon, 15 Sep 2026 08:42:09 +0530
+From: "E Corp IT Security" <it-security@ecorp-corp.com>
+Reply-To: "IT Security Team" <recovery-desk@ecorp-secure-alert.com>
+To: "Dominic S." <s.dominic@ecorp-corp.com>
+Subject: [URGENT] Suspicious Login Detected - Immediate Action Required
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: PHPMailer 6.1.4 (https://github.com/PHPMailer/PHPMailer)
+X-Incident-Reference: ECORP-104
+X-Investigation-Flag: ECORP{h34d3r_1nsp3ct10n_r3v34ls_th3_tru7h}
+X-Attached-Evidence: company_event.jpg
+
+Dear Employee,
+
+Our security systems have detected a SUSPICIOUS LOGIN attempt on your E Corp
+account from an unrecognized device. To avoid immediate suspension of your
+account, you must verify your identity within the next 2 HOURS.
+
+Please review the attached company event photo (company_event.jpg) which was
+flagged during the incident review, and confirm your credentials at the
+secure recovery portal linked below.
+
+    >> Verify My Account Now <<
+    http://ecorp-secure-alert.com/recovery/verify?ref=ECORP-104
+
+Failure to act will result in permanent loss of access to all E Corp systems.
+
+Regards,
+E Corp IT Security Team
+This is an automated message. Do not reply.
