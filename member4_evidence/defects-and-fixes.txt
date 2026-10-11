@@ -1,0 +1,67 @@
+==================================================
+E CORP CTF - DEFECTS AND FIXES
+Member 4 - Integration, Testing & Documentation
+==================================================
+
+
+DEFECT 01 - STAGE 4 PORT MISMATCH
+
+Problem:
+The Stage 3 clue instructed the player to access:
+
+http://127.0.0.1:8080
+
+However, the implemented Docker Compose environment published
+the EC-04 container as:
+
+127.0.0.1:8081 -> container port 8080
+
+Evidence:
+docker compose ps showed EC-04 running with host port 8081.
+
+Impact:
+A player following the original clue directly could not connect
+to the Stage 4 portal from the host.
+
+Resolution:
+The actual host-access instructions were clarified to use:
+
+http://127.0.0.1:8081
+
+The internal container service remains on port 8080.
+
+Reason:
+Docker port mapping separates the container service port from
+the host-accessible port.
+
+Status:
+RESOLVED
+
+
+--------------------------------------------------
+
+
+DEFECT 02 - BACKUP DIRECTORY DIRECT ACCESS
+
+Problem:
+robots.txt revealed:
+
+Disallow: /backup/
+
+Opening /backup/ directly returned HTTP 404.
+
+Investigation:
+The challenge required investigation of specific exposed
+resources rather than directory listing.
+
+Impact:
+The player could incorrectly assume the Stage 4 challenge was
+broken.
+
+Resolution:
+The intended challenge path was verified using the application
+clues and available API/resources rather than relying on an open
+directory index.
+
+Status:
+VERIFIED

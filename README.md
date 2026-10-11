@@ -25,14 +25,18 @@
 - [What makes this range different](#-what-makes-this-range-different)
 - [Architecture](#-architecture)
 - [Quick start](#-quick-start)
+- [Reset and Recovery](#-reset-and-recovery)
 - [Preflight health check](#-preflight-health-check)
+- [Member 4 Integration Validation](#-member-4-integration-validation)
 - [Player field kit](#-player-field-kit)
 - [MITRE ATT&CK mapping](#-mitre-attck-mapping)
 - [Learning outcomes](#-learning-outcomes)
 - [Scoring](#-scoring)
 - [Running a session](#-running-a-session)
 - [Organizer workflow](#-organizer-workflow)
+- [Self-developed scripts](#-self-developed-scripts)
 - [Project layout](#-project-layout)
+- [Tested Environment](#-tested-environment)
 - [Design and accessibility](#-design-and-accessibility)
 - [Safety model and spoiler policy](#-safety-model-and-spoiler-policy)
 - [Troubleshooting](#-troubleshooting)
@@ -177,8 +181,28 @@ Compose binds host ports to `127.0.0.1`. The portal and SSH target are fictional
 
 ### Requirements
 
-- Docker Engine with the Docker Compose v2 plugin
-- A shell capable of running the included Bash scripts
+Required:
+
+- Docker Engine
+- Docker Compose v2
+- Bash-compatible shell
+
+Recommended for validation:
+
+- `curl`
+- `netcat` (`nc`)
+
+Player tools depend on the challenge stage and may include:
+
+- ExifTool
+- Steghide
+- Wireshark
+- OpenSSH client
+- CyberChef or equivalent local decoding tools
+
+Optional organizer dependency:
+
+- Python 3 with Scapy for regenerating the EC-05 packet capture
 
 ### Launch
 
@@ -202,6 +226,35 @@ docker compose down                       # stop and remove the containers
 
 > [!NOTE]
 > If you intentionally change a host port, update the matching clue card, EC-03 generated message where applicable, integration notes, and verification checks together.
+
+---
+
+## 🔄 Reset and Recovery
+
+The CTF environment can be stopped and restored using Docker Compose.
+
+### Stop the environment
+
+```bash
+docker compose down
+```
+
+### Start a clean environment
+
+```bash
+docker compose up -d --build
+```
+
+### Verify recovery
+
+```bash
+docker compose ps
+bash verify.sh
+```
+
+The platform database is not stored in a persistent Docker volume. Recreating the platform container therefore resets player accounts, progress, solved stages and scores.
+
+Challenge source files and organizer artefacts remain unchanged.
 
 ---
 
@@ -232,6 +285,70 @@ Run the organizer validation suite with:
 
 ```bash
 bash verify.sh
+```
+
+---
+
+## 🧪 Member 4 Integration Validation
+
+Member 4 is responsible for end-to-end integration, testing, recovery validation and project documentation.
+
+The integration validation script can be run using:
+
+```bash
+bash member4_validate.sh
+```
+
+The script verifies:
+
+- Docker services are running
+- The CTF platform is reachable
+- The EC-04 web portal is reachable
+- The EC-06 SSH service is reachable
+- Required player-facing challenge artefacts exist
+
+Associated test evidence is stored in:
+
+```text
+member4_evidence/
+├── test-results.txt
+├── defects-and-fixes.txt
+└── reset-test.txt
+```
+
+These files document end-to-end testing, identified defects, fixes, reset/recovery testing and final integration verification.
+
+### Integration Testing Summary
+
+The complete six-stage dependency chain is verified as:
+
+```text
+EC-01
+  ↓
+EC-02
+  ↓
+EC-03
+  ↓
+EC-04
+  ↓
+EC-05
+  ↓
+EC-06
+```
+
+Integration testing checks that:
+
+- EC-01 provides the clue required for EC-02
+- EC-02 provides the key required for EC-03
+- EC-03 provides the information required for EC-04
+- EC-04 provides the evidence required for EC-05
+- EC-05 provides the access information required for EC-06
+- EC-06 completes the final investigation
+
+Detailed results are recorded in:
+
+```text
+member4_evidence/test-results.txt
 ```
 
 ---
@@ -349,8 +466,27 @@ The EC-02 builder uses steganography tooling; the EC-03 generator uses Python's 
 
 For the platform service, see [`platform/README.md`](platform/README.md). Additional deployment and stage notes are in [`docs/`](docs/) and [`platform/INTEGRATION_NOTES.md`](platform/INTEGRATION_NOTES.md).
 
+> [!IMPORTANT]
+> Player-only distributions must exclude organizer answer material such as private stage files and server-side flag sources.
+>
+> The lecturer/instructor submission package should retain the organizer files required to build, validate and assess the complete CTF project.
+
 ---
 
+## 🧩 Self-developed Scripts
+
+The project includes self-developed scripts and automation tools created by each team member according to their assigned responsibilities. These scripts support platform deployment, challenge generation, testing, and validation.
+
+| Member | Script / Code | Purpose |
+|---|---|---|
+| Member 01 – Chanuka | `verify.sh`, `sync_artefacts.sh`, `platform/seed_flags.py`, `docker-compose.yml` | Validates the CTF platform, synchronizes challenge artefacts, configures server-side flag validation, and manages Docker deployment and architecture. |
+| Member 02 – Danidu | `stage03_crypto/generate_message.py` | Generates the EC-03 layered cryptography challenge artefact. |
+| Member 03 – Praween | `stage05_network/generate_traffic.py` | Generates synthetic network traffic and PCAP evidence for EC-05. |
+| Member 04 – Christina | `member4_validate.sh` | Performs integration testing, service availability checks, challenge artefact validation, and recovery verification. |
+
+Each member is responsible for demonstrating and explaining their own implemented scripts during the technical walkthrough.
+
+---
 ## 🗂️ Project layout
 
 ```text
@@ -360,6 +496,11 @@ Ecorp-CTF-Arena/
 ├── build.sh                          # EC-01–EC-03 organizer build
 ├── sync_artefacts.sh                 # synchronize player evidence
 ├── verify.sh                         # organizer validation checks
+├── member4_validate.sh
+├── member4_evidence/
+│   ├── test-results.txt
+│   ├── defects-and-fixes.txt
+│   └── reset-test.txt
 ├── docs/
 │   ├── assets/ecorp-ctf-arena-banner.svg
 │   ├── CTFD_SETUP.md
@@ -379,6 +520,35 @@ Ecorp-CTF-Arena/
 ```
 
 Each stage folder contains maintainer sources and, where applicable, separate `public/` and `private/` material. Keep private files out of player-facing downloads.
+
+---
+
+## ✅ Tested Environment
+
+The final CTF implementation was tested using:
+
+- Kali Linux
+- Docker Engine
+- Docker Compose v2
+- Firefox
+- Wireshark
+- OpenSSH client
+
+Verified local services:
+
+| Service | Host address |
+|---|---|
+| CTF Platform | `http://127.0.0.1:5001` |
+| EC-04 Portal | `http://127.0.0.1:8081` |
+| EC-06 SSH | `127.0.0.1:2223` |
+
+The final environment should be validated using:
+
+```bash
+docker compose ps
+bash verify.sh
+bash member4_validate.sh
+```
 
 ---
 
@@ -505,6 +675,7 @@ Ideas for future versions (**not yet implemented**):
 Feedback, issues, and stage ideas are welcome.
 
 ---
+
 
 <div align="center">
   <sub>OPERATION E CORP · FOLLOW THE EVIDENCE · VERIFY EVERY FLAG · CLOSE THE INCIDENT</sub>

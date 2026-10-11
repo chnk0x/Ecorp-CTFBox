@@ -1,0 +1,70 @@
+==================================================
+E CORP CTF - RESET / RECOVERY TEST
+Member 4 - Integration, Testing & Documentation
+==================================================
+===== BEFORE RESET =====
+Sun Oct 11 09:18:48 AM +0530 2026
+NAME             IMAGE                COMMAND           SERVICE    CREATED        STATUS         PORTS
+ec04             ecorp-ctf-ec04       "python app.py"   ec04       15 hours ago   Up 8 minutes   127.0.0.1:8081->8080/tcp
+ec06             ecorp-ctf-ec06       "/start.sh"       ec06       23 hours ago   Up 8 minutes   127.0.0.1:2223->22/tcp
+ecorp-platform   ecorp-ctf-platform   "python app.py"   platform   23 hours ago   Up 8 minutes   127.0.0.1:5001->5000/tcp
+===== STOPPING CTF =====
+===== AFTER STOP =====
+NAME      IMAGE     COMMAND   SERVICE   CREATED   STATUS    PORTS
+===== STARTING CTF AGAIN =====
+===== AFTER RECOVERY =====
+NAME             IMAGE                COMMAND           SERVICE    CREATED          STATUS          PORTS
+ec04             ecorp-ctf-ec04       "python app.py"   ec04       10 seconds ago   Up 10 seconds   127.0.0.1:8081->8080/tcp
+ec06             ecorp-ctf-ec06       "/start.sh"       ec06       10 seconds ago   Up 10 seconds   127.0.0.1:2223->22/tcp
+ecorp-platform   ecorp-ctf-platform   "python app.py"   platform   10 seconds ago   Up 10 seconds   127.0.0.1:5001->5000/tcp
+===== POST-RESET VALIDATION =====
+============================================
+E Corp CTF - Member 4 Integration Validation
+============================================
+Date: Sun Oct 11 09:20:01 AM +0530 2026
+
+1. Docker services
+------------------
+NAME             IMAGE                COMMAND           SERVICE    CREATED          STATUS          PORTS
+ec04             ecorp-ctf-ec04       "python app.py"   ec04       25 seconds ago   Up 25 seconds   127.0.0.1:8081->8080/tcp
+ec06             ecorp-ctf-ec06       "/start.sh"       ec06       25 seconds ago   Up 25 seconds   127.0.0.1:2223->22/tcp
+ecorp-platform   ecorp-ctf-platform   "python app.py"   platform   25 seconds ago   Up 25 seconds   127.0.0.1:5001->5000/tcp
+
+[PASS] platform container is running
+[PASS] ec04 container is running
+[PASS] ec06 container is running
+
+2. CTF Platform
+---------------
+[PASS] CTF platform reachable on port 5001
+
+3. EC-04 Web Challenge
+----------------------
+[PASS] EC-04 portal reachable on port 8081
+[PASS] EC-04 robots.txt is accessible
+
+4. EC-06 SSH
+-------------
+[PASS] EC-06 SSH port 2223 is reachable
+
+5. Public Challenge Artefacts
+-----------------------------
+[PASS] stage01_forensics/public/suspicious_email.eml exists
+[PASS] stage02_stego/public/company_event.jpg exists
+[PASS] stage03_crypto/public/attacker_message.txt exists
+[PASS] stage05_network/network_capture.pcap exists
+
+============================================
+Validation Summary
+PASS: 11
+FAIL: 0
+============================================
+
+Reset Test Result:
+PASS
+
+Conclusion:
+The CTF services were stopped and successfully restored.
+After recovery, the platform, EC-04 web challenge, EC-06 SSH
+service and required public challenge artefacts were verified
+again using the Member 4 validation script.
