@@ -1,0 +1,4 @@
+# archive_sync - nightly evidence archive job (disabled)
+# Archive: /home/analyst/final_report.zip
+# Password = the attacker's key word + the incident number from the first email
+# 0 2 * * * analyst /bin/true

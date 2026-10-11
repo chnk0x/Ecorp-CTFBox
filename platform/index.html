@@ -1,0 +1,1794 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#070b12">
+  <meta name="description" content="Operation E Corp Breach: a six-stage cybersecurity capture-the-flag investigation across six security domains.">
+  <title>Operation E Corp Breach — Cyber Range</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #070b12;
+      --bg-soft: #0b111b;
+      --panel: #0e1622;
+      --panel-raised: #121d2b;
+      --line: #223142;
+      --line-soft: rgba(154, 180, 202, .14);
+      --text: #edf4f7;
+      --muted: #a0b0bb;
+      --quiet: #71828e;
+      --mint: #b5f36b;
+      --mint-deep: #82c83e;
+      --cyan: #6ed9d2;
+      --blue: #88bdf4;
+      --amber: #f0bd69;
+      --red: #ff8f87;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --radius: 16px;
+      --max: 1200px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 94px; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: -5%;
+      z-index: -2;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at 78% 8%, rgba(53, 105, 107, .13), transparent 36rem),
+        radial-gradient(ellipse at 8% 38%, rgba(62, 93, 127, .10), transparent 38rem),
+        var(--bg);
+      animation: ambient-drift 32s ease-in-out infinite alternate;
+    }
+    @keyframes ambient-drift {
+      from { transform: translate3d(-.35%, -.3%, 0) scale(1); }
+      to { transform: translate3d(.35%, .4%, 0) scale(1.025); }
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      opacity: .22;
+      background-image: linear-gradient(rgba(133, 164, 184, .045) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(133, 164, 184, .045) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, black 0%, transparent 82%);
+    }
+    a { color: inherit; }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    ::selection { color: #07100a; background: var(--mint); }
+    :focus-visible { outline: 2px solid var(--mint); outline-offset: 4px; }
+    [hidden] { display: none !important; }
+    .icon-library { position: absolute; width: 0; height: 0; overflow: hidden; }
+    .skip-link {
+      position: fixed; z-index: 200; top: 10px; left: 10px; padding: 10px 14px;
+      transform: translateY(-150%); border-radius: 8px; background: var(--mint); color: #07100a;
+      font-weight: 750; text-decoration: none;
+    }
+    .skip-link:focus { transform: translateY(0); }
+    .wrap { width: min(var(--max), calc(100% - 48px)); margin-inline: auto; }
+    .mono { font-family: var(--mono); }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+    /* Header */
+    .site-header {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(7, 11, 18, .94);
+      border-bottom: 1px solid rgba(157, 183, 202, .11);
+    }
+    .nav-shell { min-height: 72px; display: flex; align-items: center; gap: 28px; }
+    .brand { display: inline-flex; align-items: center; gap: 11px; min-width: 192px; text-decoration: none; }
+    .brand-mark {
+      width: 37px; height: 37px; display: grid; place-items: center; flex: 0 0 auto;
+      border: 1px solid rgba(181, 243, 107, .56); border-radius: 11px;
+      color: var(--mint); background: rgba(181, 243, 107, .07);
+    }
+    .brand-badge { width: 24px; height: 24px; display: block; color: var(--mint); }
+    .brand-copy { display: grid; line-height: 1.13; }
+    .brand-copy strong { font-size: 12px; letter-spacing: .105em; font-weight: 750; }
+    .brand-copy small { margin-top: 5px; color: var(--quiet); font: 10px/1 var(--mono); letter-spacing: .08em; }
+    .nav-links { display: flex; align-items: center; justify-content: center; gap: 4px; flex: 1; }
+    .nav-links a {
+      padding: 9px 11px; border-radius: 8px; color: var(--muted); text-decoration: none;
+      font-size: 12px; font-weight: 600; transition: color .18s ease, background .18s ease;
+    }
+    .nav-links a:hover { color: var(--text); background: rgba(255, 255, 255, .055); }
+    .nav-actions { display: flex; align-items: center; justify-content: flex-end; gap: 9px; min-width: 192px; }
+    .score-chip, .user-chip {
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 35px;
+      padding: 0 10px; border: 1px solid var(--line); border-radius: 9px;
+      background: rgba(255,255,255,.025); font: 600 11px/1 var(--mono); white-space: nowrap;
+    }
+    .score-chip { color: var(--mint); }
+    .score-chip svg { width: 14px; height: 14px; }
+    .user-chip { color: var(--text); }
+    .user-chip .user-initial {
+      width: 22px; height: 22px; display: grid; place-items: center; border-radius: 6px;
+      color: #0c1308; background: var(--mint); font-weight: 800;
+    }
+    .logout-btn {
+      margin-left: 3px; padding: 5px 0 5px 8px; border: 0; border-left: 1px solid var(--line);
+      background: none; color: var(--quiet); font: 600 10px/1 var(--mono); cursor: pointer;
+    }
+    .logout-btn:hover { color: var(--red); }
+    .button {
+      min-height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+      padding: 0 16px; border: 1px solid transparent; border-radius: 9px;
+      font-size: 13px; font-weight: 750; text-decoration: none; cursor: pointer;
+      transition: transform .18s ease, border-color .18s ease, background .18s ease, color .18s ease;
+    }
+    .button:hover { transform: translateY(-2px); }
+    .button-primary { color: #10170c; background: var(--mint); border-color: var(--mint); }
+    .button-primary:hover { background: #c9ff87; border-color: #c9ff87; }
+    .button-secondary { color: var(--text); background: #111a25; border-color: #2a3948; }
+    .button-secondary:hover { border-color: #66806e; background: #15211f; }
+    .button-small { min-height: 36px; padding-inline: 12px; font-size: 12px; }
+    .button svg { width: 16px; height: 16px; }
+
+    /* Intro */
+    .hero { padding: 68px 0 42px; }
+    .hero-grid { display: grid; grid-template-columns: minmax(0, 1.02fr) minmax(380px, .98fr); align-items: center; gap: clamp(34px, 6vw, 84px); }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 10px; margin-bottom: 19px;
+      color: var(--mint); font: 700 11px/1.4 var(--mono); letter-spacing: .13em; text-transform: uppercase;
+    }
+    .eyebrow::before { content: ""; width: 24px; height: 1px; background: var(--mint); }
+    h1, h2, h3, p { margin-top: 0; }
+    .hero h1 {
+      max-width: 660px; margin-bottom: 19px; font-size: clamp(44px, 6.4vw, 76px);
+      line-height: .99; letter-spacing: -.065em; font-weight: 760;
+    }
+    .hero h1 .accent { color: var(--mint); }
+    .hero-lede { max-width: 560px; margin-bottom: 25px; color: #b5c3cc; font-size: clamp(15px, 1.6vw, 17px); line-height: 1.75; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 11px; margin-bottom: 29px; }
+    .hero-meta { display: flex; flex-wrap: wrap; gap: 10px 20px; color: var(--quiet); font: 10px/1.5 var(--mono); letter-spacing: .045em; }
+    .hero-meta span { display: inline-flex; align-items: center; gap: 7px; }
+    .hero-meta svg { width: 14px; height: 14px; color: var(--cyan); }
+    .hero-visual {
+      position: relative; min-height: 380px; display: grid; place-items: center;
+      border: 1px solid #1e2b38; border-radius: 20px; overflow: hidden;
+      background: linear-gradient(145deg, rgba(15, 27, 37, .92), rgba(9, 16, 25, .97));
+      box-shadow: 0 28px 80px rgba(0, 0, 0, .24);
+    }
+    .hero-visual::before, .hero-visual::after {
+      content: ""; position: absolute; width: 210px; height: 210px; border-radius: 50%; pointer-events: none;
+    }
+    .hero-visual::before { top: -138px; right: -72px; border: 1px solid rgba(110, 217, 210, .12); }
+    .hero-visual::after { bottom: -167px; left: -65px; border: 1px solid rgba(181, 243, 107, .10); }
+    .hero-art { position: relative; z-index: 1; width: min(100%, 590px); height: auto; display: block; }
+    .art-ring { transform-box: fill-box; transform-origin: center; animation: ring-breathe 9s ease-in-out infinite; }
+    .art-sweep { transform-box: view-box; transform-origin: 50% 50%; animation: sweep 30s linear infinite; }
+    @keyframes ring-breathe { 0%,100% { opacity: .45; transform: scale(.99); } 50% { opacity: .72; transform: scale(1.02); } }
+    @keyframes sweep { to { transform: rotate(360deg); } }
+    .visual-caption {
+      position: absolute; z-index: 2; right: 18px; bottom: 16px; color: #7c939f;
+      font: 9px/1.3 var(--mono); letter-spacing: .12em; text-transform: uppercase;
+    }
+    .hero-stats {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin-top: 42px;
+      overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: var(--line);
+    }
+    .hero-stat { min-height: 76px; padding: 14px 17px; background: rgba(11, 17, 27, .95); }
+    .hero-stat strong { display: block; margin-bottom: 4px; color: var(--text); font: 700 20px/1.15 var(--mono); letter-spacing: -.05em; }
+    .hero-stat span { color: var(--quiet); font-size: 11px; }
+
+    /* Shared section styles */
+    .section { padding: 83px 0; border-top: 1px solid rgba(150, 175, 196, .10); }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 28px; margin-bottom: 31px; }
+    .section-kicker { margin-bottom: 10px; color: var(--mint); font: 700 10px/1.4 var(--mono); letter-spacing: .14em; text-transform: uppercase; }
+    .section-title { margin-bottom: 0; font-size: clamp(29px, 4.2vw, 42px); line-height: 1.12; letter-spacing: -.045em; font-weight: 740; }
+    .section-intro { max-width: 460px; margin: 0; color: var(--muted); font-size: 14px; line-height: 1.75; }
+    .subtle-link { display: inline-flex; align-items: center; gap: 7px; color: var(--mint); font-size: 12px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+    .subtle-link:hover { color: #d3ff9b; }
+    .subtle-link svg { width: 14px; height: 14px; transition: transform .18s ease; }
+    .subtle-link:hover svg { transform: translateX(3px); }
+
+    /* Briefing & difficulty progression */
+    .briefing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .briefing-card, .curve-card {
+      min-height: 236px; padding: clamp(22px, 3vw, 34px); border: 1px solid var(--line);
+      border-radius: var(--radius); background: linear-gradient(145deg, rgba(16, 25, 37, .94), rgba(11, 17, 27, .96));
+    }
+    .briefing-card { position: relative; overflow: hidden; }
+    .briefing-card::after {
+      content: "E/"; position: absolute; right: 26px; bottom: -26px; color: rgba(181, 243, 107, .04);
+      font: 900 158px/.9 var(--mono); letter-spacing: -.14em; pointer-events: none;
+    }
+    .briefing-card h3, .curve-card h3 { margin-bottom: 13px; font-size: 18px; letter-spacing: -.02em; }
+    .briefing-card p { max-width: 510px; margin-bottom: 17px; color: var(--muted); font-size: 13px; line-height: 1.85; }
+    .briefing-note { display: inline-flex; align-items: center; gap: 8px; color: #d0dfd6; font: 10px/1.5 var(--mono); }
+    .briefing-note svg { width: 15px; height: 15px; color: var(--mint); }
+    .curve-card { display: flex; flex-direction: column; justify-content: center; }
+    .curve-card h3 { margin-bottom: 21px; }
+    .curve-track { position: relative; display: grid; grid-template-columns: repeat(6, 1fr); gap: 7px; }
+    .curve-track::before { content: ""; position: absolute; top: 17px; left: 8%; right: 8%; height: 1px; background: #314345; }
+    .curve-step { position: relative; z-index: 1; display: grid; justify-items: center; gap: 8px; text-align: center; }
+    .curve-node {
+      width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid #44545a;
+      border-radius: 50%; color: #d2e1dd; background: #111b23; font: 700 10px var(--mono);
+    }
+    .curve-step:nth-child(-n+2) .curve-node { border-color: #88b86a; color: var(--mint); }
+    .curve-step:nth-child(3) .curve-node, .curve-step:nth-child(4) .curve-node { border-color: #6ebcb5; color: var(--cyan); }
+    .curve-step:nth-child(5) .curve-node { border-color: #c89861; color: var(--amber); }
+    .curve-step:nth-child(6) .curve-node { border-color: #d37f7a; color: var(--red); }
+    .curve-step strong { color: var(--text); font: 700 9px/1.2 var(--mono); }
+    .curve-step small { color: var(--quiet); font-size: 9px; line-height: 1.3; }
+
+    /* Challenge cards */
+    .challenge-section { background: linear-gradient(180deg, rgba(11, 17, 26, .22), rgba(11, 17, 26, .48)); }
+    .board-summary { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font: 11px/1.4 var(--mono); }
+    .board-summary svg { width: 15px; height: 15px; color: var(--mint); }
+    .challenge-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .stage-card {
+      --stage-accent: var(--mint);
+      display: flex; flex-direction: column; min-width: 0; overflow: hidden;
+      border: 1px solid var(--line); border-radius: 15px;
+      background: linear-gradient(155deg, rgba(16, 25, 36, .98), rgba(11, 17, 26, .98));
+      transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+    .stage-card:hover { transform: translateY(-3px); border-color: #42574e; box-shadow: 0 16px 38px rgba(0,0,0,.19); }
+    .stage-link { color: inherit; text-decoration: none; cursor: pointer; }
+    .stage-link:focus-visible { outline: 2px solid var(--mint); outline-offset: 3px; }
+    .stage-open-cta { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 18px 17px; padding-top: 11px; border-top: 1px solid rgba(255,255,255,.06); color: var(--stage-accent); font: 700 10px/1.4 var(--mono); letter-spacing: .03em; }
+    .stage-open-cta svg { width: 15px; height: 15px; transition: transform .18s ease; }
+    .stage-card:hover .stage-open-cta svg { transform: translateX(3px); }
+    .stage-card[data-stage="2"] { --stage-accent: #8ac8bb; }
+    .stage-card[data-stage="3"] { --stage-accent: #93aef5; }
+    .stage-card[data-stage="4"] { --stage-accent: #ddb476; }
+    .stage-card[data-stage="5"] { --stage-accent: #83c2dc; }
+    .stage-card[data-stage="6"] { --stage-accent: #d58b85; }
+    .stage-card.is-solved { border-color: rgba(181,243,107,.46); }
+    .stage-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 18px 18px 13px; }
+    .stage-label { display: flex; align-items: center; gap: 8px; color: var(--stage-accent); font: 700 10px/1.35 var(--mono); letter-spacing: .07em; }
+    .stage-label .stage-index { color: var(--quiet); }
+    .stage-state {
+      display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px; border: 1px solid #293743;
+      border-radius: 99px; color: #93a3ad; font: 700 9px/1 var(--mono); letter-spacing: .04em; white-space: nowrap;
+    }
+    .stage-state::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: .72; }
+    .stage-state.status-solved { color: var(--mint); border-color: rgba(181,243,107,.3); background: rgba(181,243,107,.06); }
+    .stage-state.status-ready { color: var(--cyan); border-color: rgba(110,217,210,.28); }
+    .stage-state.status-locked { color: #8996a0; }
+    .stage-state.status-start { color: var(--amber); border-color: rgba(240,189,105,.26); }
+    .stage-art {
+      height: 112px; display: grid; place-items: center; margin: 0 18px 14px; overflow: hidden;
+      border: 1px solid rgba(255,255,255,.055); border-radius: 10px;
+      background: radial-gradient(ellipse at 52% 115%, color-mix(in srgb, var(--stage-accent) 12%, transparent), transparent 72%), #0a111a;
+    }
+    .stage-art svg { width: 75px; height: 75px; color: var(--stage-accent); opacity: .89; transition: transform .22s ease, opacity .22s ease; }
+    .stage-card:hover .stage-art svg { transform: translateY(-2px) scale(1.04); opacity: 1; }
+    .stage-heading { padding: 0 18px; }
+    .stage-heading h3 { min-height: 48px; margin-bottom: 8px; font-size: 16px; line-height: 1.45; letter-spacing: -.02em; }
+    .stage-heading p { min-height: 62px; margin-bottom: 14px; color: var(--muted); font-size: 12px; line-height: 1.7; }
+    .stage-tags { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; }
+    .stage-tag { padding: 5px 8px; border: 1px solid #263441; border-radius: 6px; color: #a9b8c0; font: 600 9px/1.2 var(--mono); letter-spacing: .02em; }
+    .stage-tag.points { color: var(--stage-accent); border-color: color-mix(in srgb, var(--stage-accent) 28%, transparent); }
+    .stage-tools { min-height: 34px; margin: 0 18px 15px; padding: 9px 0 0; border-top: 1px solid rgba(255,255,255,.055); color: var(--quiet); font-size: 10px; line-height: 1.45; }
+    .stage-tools strong { color: #a9b8c0; font-weight: 650; }
+    .play { margin-top: auto; padding: 0 14px 14px; }
+    .play-box { padding: 13px; border: 1px solid rgba(144, 169, 188, .12); border-radius: 10px; background: rgba(5, 10, 16, .48); }
+    .play-message { margin: 0; color: #a9b9c2; font-size: 11px; line-height: 1.65; }
+    .play-message strong { color: var(--text); }
+    .play-lock, .play-anon { display: flex; align-items: flex-start; gap: 9px; }
+    .play-lock svg, .play-anon svg { width: 16px; height: 16px; flex: 0 0 auto; color: var(--stage-accent); }
+    .play-anon .button { min-height: 31px; margin-top: 10px; padding-inline: 10px; font-size: 10px; }
+    .artifact-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+    .artifact-copy { min-width: 0; }
+    .artifact-copy strong { display: block; margin-bottom: 2px; color: #d8e4e9; font-size: 11px; }
+    .artifact-copy span { display: block; overflow: hidden; color: var(--quiet); font: 9px/1.4 var(--mono); text-overflow: ellipsis; white-space: nowrap; }
+    .download-link { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 5px; color: var(--mint); font: 700 9px/1.2 var(--mono); text-decoration: none; }
+    .download-link:hover { color: #d2ff9c; }
+    .download-link svg { width: 13px; height: 13px; }
+    .hint-list { display: grid; gap: 6px; margin-bottom: 11px; }
+    .hint-item { border: 1px solid rgba(139, 163, 179, .10); border-radius: 7px; background: rgba(255,255,255,.018); }
+    .hint-button {
+      width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 7px 8px;
+      border: 0; border-radius: 7px; background: transparent; color: #b1c0c7; text-align: left;
+      font: 600 9px/1.35 var(--mono); cursor: pointer;
+    }
+    .hint-button:hover:not(:disabled) { color: var(--mint); background: rgba(181,243,107,.04); }
+    .hint-button:disabled { color: #82939c; cursor: default; }
+    .hint-cost { color: var(--amber); white-space: nowrap; }
+    .hint-cost.free { color: var(--mint); }
+    .hint-text { margin: 0; padding: 0 9px 9px; color: #c5d1d6; font-size: 10px; line-height: 1.65; }
+    .flag-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px; }
+    .flag-input {
+      width: 100%; min-width: 0; min-height: 37px; padding: 0 10px; border: 1px solid #293b48; border-radius: 7px;
+      outline: none; background: #091019; color: var(--text); font: 11px var(--mono); transition: border-color .18s ease;
+    }
+    .flag-input::placeholder { color: #647681; }
+    .flag-input:focus { border-color: var(--stage-accent); }
+    .flag-form .button { min-height: 37px; padding-inline: 10px; font-size: 10px; }
+    .flag-form .button:disabled { opacity: .58; cursor: wait; transform: none; }
+    .flag-feedback { min-height: 16px; margin: 6px 1px 0; color: var(--quiet); font-size: 10px; line-height: 1.45; }
+    .flag-feedback.error { color: var(--red); }
+    .flag-feedback.success { color: var(--mint); }
+    .solved-box { display: flex; align-items: center; gap: 9px; padding: 10px; border: 1px solid rgba(181,243,107,.2); border-radius: 8px; background: rgba(181,243,107,.045); }
+    .solved-box svg { width: 19px; height: 19px; flex: 0 0 auto; color: var(--mint); }
+    .solved-box p { margin: 0; color: #d7e6dc; font-size: 11px; line-height: 1.5; }
+
+    /* Full challenge view */
+    .mission-view { min-height: calc(100vh - 72px); padding: 30px 0 78px; border-top: 1px solid rgba(150,175,196,.1); }
+    .mission-topline { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 23px; }
+    .mission-back { display: inline-flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; color: #bfccd2; background: rgba(255,255,255,.025); font-size: 11px; font-weight: 650; cursor: pointer; }
+    .mission-back:hover { color: var(--mint); border-color: rgba(181,243,107,.35); }
+    .mission-back svg { width: 15px; height: 15px; transform: rotate(180deg); }
+    .mission-breadcrumb { color: var(--quiet); font: 10px/1.4 var(--mono); letter-spacing: .08em; }
+    .mission-hero { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(220px, .7fr); align-items: center; gap: 25px; margin-bottom: 17px; padding: clamp(23px, 4vw, 40px); overflow: hidden; border: 1px solid #263a45; border-radius: 17px; background: radial-gradient(ellipse at 83% 16%, rgba(67,142,129,.12), transparent 32rem), linear-gradient(145deg, rgba(16,27,38,.98), rgba(9,15,24,.98)); }
+    .mission-eyebrow { display: flex; align-items: center; gap: 9px; margin-bottom: 12px; color: var(--mint); font: 700 10px/1.4 var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+    .mission-eyebrow::before { content: ""; width: 20px; height: 1px; background: currentColor; }
+    .mission-hero h1 { margin: 0 0 13px; font-size: clamp(32px, 4.7vw, 54px); line-height: 1.03; letter-spacing: -.055em; }
+    .mission-description { max-width: 700px; margin-bottom: 17px; color: #b5c3cc; font-size: 14px; line-height: 1.8; }
+    .mission-badges { display: flex; flex-wrap: wrap; gap: 7px; }
+    .mission-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 9px; border: 1px solid #2a3b46; border-radius: 7px; color: #d0dce0; background: rgba(3,9,14,.28); font: 650 9px/1.3 var(--mono); }
+    .mission-badge.accent { color: var(--mint); border-color: rgba(181,243,107,.26); }
+    .mission-visual { position: relative; min-height: 190px; display: grid; place-items: center; overflow: hidden; border: 1px solid rgba(255,255,255,.06); border-radius: 13px; background: radial-gradient(ellipse at center, rgba(181,243,107,.075), transparent 64%), #0a121b; }
+    .mission-visual::before, .mission-visual::after { content: ""; position: absolute; border: 1px solid rgba(110,217,210,.12); border-radius: 50%; }
+    .mission-visual::before { width: 158px; height: 158px; }
+    .mission-visual::after { width: 118px; height: 118px; border-style: dashed; border-color: rgba(181,243,107,.2); }
+    .mission-visual svg { position: relative; z-index: 1; width: 76px; height: 76px; color: var(--mint); opacity: .9; }
+    .mission-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; align-items: start; gap: 16px; }
+    .mission-content { display: grid; gap: 12px; min-width: 0; }
+    .mission-panel, .mission-sidecard { border: 1px solid var(--line); border-radius: 12px; background: rgba(13,21,32,.94); }
+    .mission-panel { padding: 19px 20px; }
+    .mission-panel-head { display: flex; align-items: center; gap: 8px; margin-bottom: 11px; color: var(--mint); font: 700 9px/1.3 var(--mono); letter-spacing: .13em; text-transform: uppercase; }
+    .mission-panel-head svg { width: 14px; height: 14px; }
+    .mission-panel h2 { margin-bottom: 9px; font-size: 16px; letter-spacing: -.02em; }
+    .mission-story { max-width: 790px; margin: 0; color: #b7c5cb; font-size: 13px; line-height: 1.85; }
+    .objective-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; counter-reset: objective; }
+    .objective-list li { display: grid; grid-template-columns: 23px minmax(0,1fr); gap: 9px; align-items: start; counter-increment: objective; color: #bac7cc; font-size: 12px; line-height: 1.65; }
+    .objective-list li::before { content: "0" counter(objective); color: var(--mint); font: 700 9px/1.8 var(--mono); }
+    .mission-resource { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 13px; border: 1px solid rgba(141,166,181,.14); border-radius: 9px; background: rgba(5,10,16,.35); }
+    .mission-resource + .mission-resource { margin-top: 8px; }
+    .resource-info { display: flex; align-items: center; gap: 11px; min-width: 0; }
+    .resource-icon { width: 34px; height: 34px; display: grid; place-items: center; flex: 0 0 auto; border: 1px solid rgba(110,217,210,.22); border-radius: 8px; color: var(--cyan); background: rgba(110,217,210,.05); }
+    .resource-icon svg { width: 17px; height: 17px; }
+    .resource-info strong { display: block; color: #d8e4e9; font-size: 11px; }
+    .resource-info small { display: block; max-width: 460px; overflow: hidden; color: var(--quiet); font: 9px/1.5 var(--mono); text-overflow: ellipsis; white-space: nowrap; }
+    .resource-download { display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto; padding: 8px 10px; border: 1px solid rgba(181,243,107,.25); border-radius: 7px; color: var(--mint); background: rgba(181,243,107,.05); font: 700 9px/1.2 var(--mono); text-decoration: none; }
+    .resource-download:hover { background: rgba(181,243,107,.12); }
+    .resource-download svg { width: 14px; height: 14px; }
+    .mission-note { margin: 10px 0 0; color: var(--quiet); font-size: 10px; line-height: 1.65; }
+    .mission-hints { display: grid; gap: 7px; }
+    .mission-hints .hint-item { background: rgba(255,255,255,.02); }
+    .mission-hints .hint-button { min-height: 38px; padding-inline: 11px; font-size: 10px; }
+    .mission-hints .hint-text { padding: 1px 12px 12px; font-size: 12px; }
+    .mission-flag-area { min-height: 50px; }
+    .mission-flag-form { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; }
+    .mission-flag-form .flag-input { min-height: 44px; font-size: 12px; }
+    .mission-flag-form .button { min-height: 44px; padding-inline: 15px; }
+    .mission-flag-form .flag-feedback { grid-column: 1 / -1; }
+    .mission-gate { display: flex; align-items: flex-start; gap: 10px; padding: 12px; border: 1px solid rgba(240,189,105,.18); border-radius: 9px; color: #c5cdd0; background: rgba(240,189,105,.035); font-size: 11px; line-height: 1.65; }
+    .mission-gate svg { width: 17px; height: 17px; flex: 0 0 auto; color: var(--amber); }
+    .mission-gate .button { margin-top: 8px; }
+    .mission-sidecard { position: sticky; top: 95px; padding: 18px; }
+    .mission-side-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+    .mission-side-head h2 { margin: 0; font-size: 14px; }
+    .mission-status { display: inline-flex; align-items: center; gap: 6px; padding: 5px 7px; border: 1px solid #2c3a44; border-radius: 99px; color: #a8b5bb; font: 700 8px/1 var(--mono); white-space: nowrap; }
+    .mission-status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .mission-status.available { color: var(--cyan); border-color: rgba(110,217,210,.27); }
+    .mission-status.solved { color: var(--mint); border-color: rgba(181,243,107,.3); }
+    .mission-status.locked { color: var(--amber); border-color: rgba(240,189,105,.25); }
+    .mission-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+    .mission-metric { padding: 10px; border: 1px solid rgba(255,255,255,.06); border-radius: 8px; background: rgba(255,255,255,.02); }
+    .mission-metric span { display: block; margin-bottom: 4px; color: var(--quiet); font: 8px/1.4 var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+    .mission-metric strong { display: block; color: #e0e8eb; font: 650 11px/1.4 var(--mono); }
+    .mission-sidecard h3 { margin: 15px 0 9px; color: #d4dee2; font-size: 11px; }
+    .mission-chain { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; }
+    .chain-node { aspect-ratio: 1; display: grid; place-items: center; padding: 0; border: 1px solid #2a3943; border-radius: 7px; color: #82939e; background: #0a1119; font: 700 8px var(--mono); cursor: pointer; }
+    .chain-node:hover { border-color: #66806e; color: var(--text); }
+    .chain-node.current { border-color: var(--cyan); color: var(--cyan); background: rgba(110,217,210,.06); }
+    .chain-node.solved { border-color: rgba(181,243,107,.4); color: var(--mint); background: rgba(181,243,107,.06); }
+    .mission-prereq { min-height: 41px; margin-top: 10px; color: var(--quiet); font-size: 10px; line-height: 1.6; }
+    .mission-action { margin-top: 13px; padding-top: 13px; border-top: 1px solid rgba(255,255,255,.07); }
+    .mission-action p { margin: 0 0 10px; color: var(--muted); font-size: 10px; line-height: 1.6; }
+    .mission-action .button { width: 100%; min-height: 40px; font-size: 11px; }
+    .mission-action .button + .button { margin-top: 7px; }
+    .mission-checklist { display: flex; align-items: center; gap: 7px; margin-top: 11px; color: var(--quiet); font-size: 9px; }
+    .mission-checklist svg { width: 14px; height: 14px; color: var(--mint); }
+
+    /* Achievement modal and downloadable badge */
+    .completion-dialog { position: relative; width: min(100%, 790px); max-height: calc(100vh - 36px); overflow: auto; padding: clamp(22px, 4vw, 38px); border: 1px solid #314a53; border-radius: 18px; background: radial-gradient(ellipse at 50% 0%, rgba(88,151,122,.12), transparent 33rem), #0c141e; box-shadow: 0 30px 100px rgba(0,0,0,.6); animation: modal-in .18s ease-out both; }
+    .completion-dialog h2 { margin: 14px 36px 7px 0; font-size: clamp(24px, 4vw, 34px); letter-spacing: -.045em; }
+    .completion-lede { margin: 0 0 15px; color: #bdcbd0; font-size: 13px; line-height: 1.7; }
+    .completion-flagline { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 15px; color: var(--mint); font: 700 10px/1.4 var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+    .completion-flagline svg { width: 16px; height: 16px; }
+    .badge-preview { overflow: hidden; border: 1px solid #2b424a; border-radius: 11px; background: #071019; box-shadow: 0 10px 40px rgba(0,0,0,.23); }
+    .badge-preview svg { width: 100%; height: auto; display: block; }
+    .completion-recognition { margin: 13px 0 0; color: #b5c4c9; font-size: 12px; line-height: 1.7; }
+    .completion-recognition strong { color: var(--text); }
+    .completion-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 18px; }
+    .completion-actions .button { min-height: 42px; }
+    .completion-subtle { margin: 10px 0 0; color: var(--quiet); font-size: 9px; line-height: 1.5; }
+    .download-status { min-height: 16px; margin: 8px 0 0; color: var(--cyan); font-size: 10px; }
+
+    /* Architecture */
+    .architecture-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .architecture-card {
+      position: relative; min-height: 204px; padding: 21px; border: 1px solid var(--line); border-radius: 14px;
+      background: linear-gradient(155deg, rgba(16, 25, 36, .95), rgba(11, 17, 26, .98));
+    }
+    .architecture-card:not(:last-child)::after {
+      content: ""; position: absolute; top: 39px; right: -15px; z-index: 2; width: 15px; height: 1px; background: #48605d;
+    }
+    .architecture-icon { width: 38px; height: 38px; display: grid; place-items: center; margin-bottom: 18px; border: 1px solid rgba(181,243,107,.23); border-radius: 10px; color: var(--mint); background: rgba(181,243,107,.055); }
+    .architecture-icon svg { width: 19px; height: 19px; }
+    .architecture-card h3 { margin-bottom: 8px; font-size: 15px; }
+    .architecture-card p { margin-bottom: 12px; color: var(--muted); font-size: 11px; line-height: 1.7; }
+    .architecture-card code { color: var(--cyan); font: 10px/1.5 var(--mono); }
+    .architecture-note {
+      display: flex; align-items: flex-start; gap: 11px; margin-top: 14px; padding: 15px 17px;
+      border: 1px solid rgba(110,217,210,.17); border-radius: 10px; background: rgba(110,217,210,.035);
+    }
+    .architecture-note svg { width: 18px; height: 18px; flex: 0 0 auto; color: var(--cyan); }
+    .architecture-note p { margin: 0; color: #aebdc4; font-size: 11px; line-height: 1.7; }
+    .architecture-note strong { color: var(--text); }
+    .lab-specs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; margin-top: 22px; overflow: hidden; border: 1px solid var(--line); border-radius: 11px; background: var(--line); }
+    .lab-spec { min-height: 72px; padding: 13px 15px; background: #0c131d; }
+    .lab-spec span { display: block; margin-bottom: 5px; color: var(--quiet); font: 9px/1.3 var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+    .lab-spec strong { display: block; color: #dce5e9; font-size: 11px; font-weight: 650; }
+
+    /* Scoreboard */
+    .scoreboard-section { background: rgba(11,17,26,.28); }
+    .score-layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 16px; align-items: start; }
+    .score-panel, .score-side { border: 1px solid var(--line); border-radius: 14px; background: #0d1520; overflow: hidden; }
+    .score-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 18px; border-bottom: 1px solid var(--line); }
+    .score-panel-head strong { font-size: 13px; }
+    .score-panel-head span { color: var(--quiet); font: 9px var(--mono); letter-spacing: .07em; }
+    .refresh-button { display: inline-flex; align-items: center; gap: 6px; border: 0; background: transparent; color: var(--cyan); font: 600 10px var(--mono); cursor: pointer; }
+    .refresh-button:hover { color: var(--mint); }
+    .refresh-button svg { width: 13px; height: 13px; }
+    .table-scroll { overflow-x: auto; }
+    .score-table { width: 100%; border-collapse: collapse; text-align: left; }
+    .score-table th { padding: 10px 14px; color: var(--quiet); background: rgba(255,255,255,.018); font: 700 9px/1.3 var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+    .score-table td { padding: 12px 14px; border-top: 1px solid rgba(255,255,255,.045); color: #d0dade; font-size: 11px; }
+    .score-table td:first-child { color: var(--quiet); font-family: var(--mono); }
+    .score-table .score-value { color: var(--mint); font: 700 11px var(--mono); }
+    .score-table .rank-top { color: var(--amber); }
+    .table-state { padding: 28px 16px !important; color: var(--quiet) !important; text-align: center; }
+    .score-side { padding: 18px; }
+    .score-side h3 { margin-bottom: 9px; font-size: 14px; }
+    .score-side p { margin-bottom: 14px; color: var(--muted); font-size: 11px; line-height: 1.7; }
+    .score-number { margin: 2px 0 4px; color: var(--mint); font: 750 34px/1.05 var(--mono); letter-spacing: -.08em; }
+    .score-side small { color: var(--quiet); font-size: 10px; }
+    .hint-legend { display: grid; gap: 9px; margin-top: 17px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.075); }
+    .hint-legend div { display: flex; justify-content: space-between; gap: 12px; color: #aab8bf; font: 10px var(--mono); }
+    .hint-legend strong { color: var(--amber); font-weight: 650; }
+
+    /* FAQ & footer */
+    .faq-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .faq-item { padding: 16px 18px; border: 1px solid var(--line); border-radius: 10px; background: rgba(13, 21, 32, .78); }
+    .faq-item h3 { margin-bottom: 6px; color: #e1e9ec; font-size: 12px; }
+    .faq-item p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.7; }
+    .faq-item code { color: var(--cyan); font: 10px var(--mono); }
+    .footer { padding: 26px 0 35px; border-top: 1px solid rgba(150,175,196,.1); }
+    .footer-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+    .footer-brand { color: #c2cdd2; font-size: 11px; font-weight: 700; letter-spacing: .06em; }
+    .footer-copy { color: var(--quiet); font-size: 10px; }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 15px; }
+    .footer-links a { color: var(--quiet); font-size: 10px; text-decoration: none; }
+    .footer-links a:hover { color: var(--mint); }
+
+    /* Dialogs and feedback */
+    .modal-backdrop {
+      position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 18px;
+      background: rgba(1, 4, 8, .76);
+    }
+    .auth-dialog {
+      position: relative; width: min(100%, 430px); padding: 27px; border: 1px solid #2b3d49;
+      border-radius: 16px; background: #0d1621; box-shadow: 0 28px 90px rgba(0,0,0,.55);
+      animation: modal-in .16s ease-out both;
+    }
+    @keyframes modal-in { from { opacity: 0; transform: translateY(8px) scale(.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .modal-close { position: absolute; top: 13px; right: 13px; width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); background: transparent; cursor: pointer; }
+    .modal-close:hover { color: var(--text); border-color: #54666e; }
+    .modal-close svg { width: 16px; height: 16px; }
+    .auth-mark { width: 42px; height: 42px; display: grid; place-items: center; margin-bottom: 18px; border: 1px solid rgba(181,243,107,.35); border-radius: 11px; color: var(--mint); background: rgba(181,243,107,.07); }
+    .auth-mark svg { width: 21px; height: 21px; }
+    .auth-dialog h2 { margin: 0 35px 7px 0; font-size: 23px; letter-spacing: -.04em; }
+    .auth-dialog > p { margin-bottom: 20px; color: var(--muted); font-size: 12px; line-height: 1.7; }
+    .auth-form { display: grid; gap: 13px; }
+    .auth-field { display: grid; gap: 6px; }
+    .auth-field label { color: #c5d0d6; font: 650 10px var(--mono); letter-spacing: .045em; }
+    .auth-field input { min-height: 43px; padding: 0 12px; border: 1px solid #2b3b47; border-radius: 8px; outline: none; background: #080f17; color: var(--text); font-size: 13px; }
+    .auth-field input:focus { border-color: var(--mint-deep); }
+    .auth-field input::placeholder { color: #657681; }
+    .auth-hint { margin: -5px 0 1px; color: var(--quiet); font-size: 10px; }
+    .auth-form .button { width: 100%; margin-top: 2px; }
+    .auth-error { min-height: 15px; margin: 0; color: var(--red); font-size: 11px; line-height: 1.5; }
+    .toast-region { position: fixed; right: 18px; bottom: 18px; z-index: 120; display: grid; gap: 8px; width: min(360px, calc(100% - 36px)); }
+    .toast {
+      padding: 12px 14px; border: 1px solid #34464f; border-radius: 10px; color: var(--text);
+      background: #111d27; box-shadow: 0 14px 40px rgba(0,0,0,.35); font-size: 12px; line-height: 1.55;
+      animation: toast-in .18s ease-out both;
+    }
+    .toast.success { border-color: rgba(181,243,107,.4); }
+    .toast.error { border-color: rgba(255,143,135,.42); }
+    @keyframes toast-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .loading { color: var(--quiet); }
+
+    @media (max-width: 1020px) {
+      .nav-shell { gap: 12px; }
+      .brand { min-width: 158px; }
+      .nav-actions { min-width: 150px; }
+      .nav-links a { padding-inline: 8px; font-size: 11px; }
+      .hero-grid { grid-template-columns: minmax(0, 1fr) minmax(320px, .9fr); gap: 30px; }
+      .hero-visual { min-height: 330px; }
+      .challenge-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 760px) {
+      .wrap { width: min(100% - 34px, var(--max)); }
+      .nav-shell { min-height: 67px; flex-wrap: wrap; justify-content: space-between; gap: 0; padding-block: 10px; }
+      .brand { min-width: 0; }
+      .nav-actions { min-width: 0; }
+      .nav-links { order: 3; flex: 0 0 100%; justify-content: flex-start; overflow-x: auto; gap: 2px; margin-top: 7px; padding: 2px 0 1px; scrollbar-width: none; }
+      .nav-links::-webkit-scrollbar { display: none; }
+      .nav-links a { flex: 0 0 auto; padding: 7px 10px; }
+      .site-header { position: sticky; }
+      .hero { padding-top: 47px; }
+      .hero-grid { grid-template-columns: 1fr; gap: 28px; }
+      .hero-copy { max-width: 650px; }
+      .hero h1 { max-width: 600px; font-size: clamp(46px, 10vw, 70px); }
+      .hero-visual { min-height: 300px; }
+      .hero-art { max-width: 530px; }
+      .hero-stats { margin-top: 28px; }
+      .section { padding: 64px 0; }
+      .section-head { display: block; }
+      .section-intro { margin-top: 13px; }
+      .section-head .subtle-link, .section-head .board-summary { margin-top: 15px; }
+      .briefing-grid { grid-template-columns: 1fr; }
+      .architecture-grid { grid-template-columns: 1fr; }
+      .architecture-card { min-height: 0; }
+      .architecture-card:not(:last-child)::after { top: auto; right: auto; bottom: -15px; left: 38px; width: 1px; height: 15px; }
+      .lab-specs { grid-template-columns: repeat(2, 1fr); }
+      .mission-layout { grid-template-columns: 1fr; }
+      .mission-hero { grid-template-columns: minmax(0,1fr) 210px; }
+      .mission-sidecard { position: static; }
+      .mission-visual { min-height: 170px; }
+      .score-layout { grid-template-columns: 1fr; }
+      .score-side { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 10px 20px; }
+      .score-side h3, .score-side p { grid-column: 1 / -1; }
+      .hint-legend { margin: 0; padding: 0 0 0 15px; border-top: 0; border-left: 1px solid rgba(255,255,255,.075); }
+      .footer-row { align-items: flex-start; flex-direction: column; }
+    }
+    @media (max-width: 560px) {
+      .wrap { width: calc(100% - 28px); }
+      .brand-copy strong { font-size: 10px; }
+      .brand-copy small { font-size: 8px; }
+      .brand-mark { width: 34px; height: 34px; }
+      .score-chip { min-height: 32px; padding-inline: 8px; font-size: 10px; }
+      .user-chip { gap: 5px; min-height: 32px; padding-inline: 6px; font-size: 9px; }
+      .user-chip .user-initial { width: 20px; height: 20px; }
+      .logout-btn { font-size: 9px; }
+      .nav-actions .button { min-height: 33px; padding-inline: 10px; font-size: 10px; }
+      .hero { padding-top: 38px; }
+      .hero h1 { font-size: clamp(42px, 12vw, 60px); }
+      .mission-topline { align-items: flex-start; flex-direction: column; }
+      .mission-hero { grid-template-columns: 1fr; padding: 20px; }
+      .mission-hero h1 { font-size: clamp(31px, 9vw, 44px); }
+      .mission-visual { min-height: 145px; }
+      .mission-panel { padding: 15px; }
+      .mission-resource { align-items: flex-start; flex-direction: column; }
+      .resource-download { width: 100%; justify-content: center; }
+      .mission-flag-form { grid-template-columns: 1fr; }
+      .mission-flag-form .button { width: 100%; }
+      .mission-sidecard { padding: 15px; }
+      .completion-dialog { padding: 21px 16px; }
+      .completion-actions { flex-direction: column; }
+      .completion-actions .button { width: 100%; }
+      .hero-lede { font-size: 14px; }
+      .hero-actions .button { min-height: 40px; padding-inline: 12px; font-size: 12px; }
+      .hero-visual { min-height: 240px; border-radius: 14px; }
+      .visual-caption { right: 11px; bottom: 9px; font-size: 8px; }
+      .hero-stats { margin-top: 21px; }
+      .hero-stat { min-height: 67px; padding: 12px 9px; }
+      .hero-stat strong { font-size: 17px; }
+      .hero-stat span { font-size: 9px; }
+      .section { padding: 54px 0; }
+      .section-title { font-size: 30px; }
+      .briefing-card, .curve-card { padding: 20px; }
+      .curve-track { gap: 2px; }
+      .curve-node { width: 29px; height: 29px; font-size: 9px; }
+      .curve-track::before { top: 14px; }
+      .curve-step strong { font-size: 8px; }
+      .curve-step small { font-size: 8px; }
+      .challenge-grid { grid-template-columns: 1fr; gap: 12px; }
+      .stage-heading h3, .stage-heading p { min-height: 0; }
+      .stage-art { height: 98px; }
+      .stage-art svg { width: 68px; height: 68px; }
+      .lab-specs { grid-template-columns: 1fr 1fr; }
+      .lab-spec { padding: 12px 10px; }
+      .lab-spec strong { font-size: 10px; }
+      .faq-grid { grid-template-columns: 1fr; }
+      .score-side { display: block; }
+      .hint-legend { margin-top: 15px; padding: 14px 0 0; border-top: 1px solid rgba(255,255,255,.075); border-left: 0; }
+      .auth-dialog { padding: 23px 19px; }
+      .score-table th, .score-table td { padding-inline: 10px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.2 4.2L19.5 6.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="10" width="15" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 10V7a4 4 0 1 1 8 0v3M12 14v3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 20 6v5.2c0 5.2-3.4 8.4-8 10.8-4.6-2.4-8-5.6-8-10.8V6l8-3Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="m8.7 12 2.1 2.1 4.6-4.7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 64 64"><rect x="8" y="13" width="48" height="37" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="m11 17 21 17 21-17M11 47l15-14m27 14L38 33" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M43 8h13M49.5 3v10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-image" viewBox="0 0 64 64"><rect x="8" y="9" width="48" height="46" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="23" cy="24" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="m11 48 15-15 10 9 7-7 11 12M8 17h48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M45 4v12m-5-6h10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-code" viewBox="0 0 64 64"><path d="m22 18-15 14 15 14m20-28 15 14-15 14M37 12 27 52" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="51" cy="10" r="3" fill="currentColor"/><circle cx="12" cy="53" r="2" fill="currentColor"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 64 64"><circle cx="32" cy="32" r="24" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 32h48M32 8c7 7 11 15 11 24S39 49 32 56c-7-7-11-15-11-24S25 15 32 8Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 19h38M13 45h38" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".7"/><circle cx="49" cy="14" r="3" fill="currentColor"/></symbol>
+    <symbol id="i-network" viewBox="0 0 64 64"><circle cx="12" cy="32" r="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="51" cy="14" r="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="51" cy="50" r="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="32" cy="32" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="m17 30 9-1m11-1 9-10M37 36l9 11M17 35l9 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M8 13h9m-4-4v8M45 31h12" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".7"/></symbol>
+    <symbol id="i-terminal" viewBox="0 0 64 64"><rect x="7" y="10" width="50" height="44" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 20h50M15 15h.1M21 15h.1M27 15h.1M17 30l8 7-8 7m14 0h12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M48 38v8" fill="none" stroke="currentColor" stroke-width="2" opacity=".65"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v11m-4-4 4 4 4-4M4 17v3h16v-3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-brain" viewBox="0 0 24 24"><path d="M12 4a3 3 0 0 0-5.8 1.1A3.6 3.6 0 0 0 4 11.4a3.7 3.7 0 0 0 3 6.2A3 3 0 0 0 12 19V4Zm0 0a3 3 0 0 1 5.8 1.1A3.6 3.6 0 0 1 20 11.4a3.7 3.7 0 0 1-3 6.2A3 3 0 0 1 12 19V4Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 9h2m-1 4h2m5-4h-2m1 4h-2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.6 9a7 7 0 0 1 11.8-2L20 12M4 12l2.6 5a7 7 0 0 0 11.8-2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2.7 19.2A1.2 1.2 0 0 0 3.8 21h16.4a1.2 1.2 0 0 0 1.1-1.8L12 3Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 9v5m0 3h.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 4.5-9 4.5-9-4.5L12 3Zm-9 9 9 4.5 9-4.5M3 16.5 12 21l9-4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+    <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="6.5" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="13.5" width="18" height="6.5" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7 7.2h.01M7 16.7h.01M11 7.2h6M11 16.7h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-globe-small" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 12h18m-9-9a14 14 0 0 1 0 18m0-18a14 14 0 0 0 0 18" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  </svg>
+
+  <header class="site-header">
+    <div class="wrap nav-shell">
+      <a class="brand" id="brandLink" href="#top" aria-label="E Corp Breach home">
+        <span class="brand-mark"><svg viewBox="0 0 36 36" class="brand-badge" aria-hidden="true"><path d="M18 3 29 9.2v12.1L18 33 7 21.3V9.2L18 3Z" fill="rgba(181,243,107,.055)" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M13 12.5h10m-10 5.5h7m-7 5.5h10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="24" cy="18" r="2.2" fill="#6ed9d2"/></svg></span>
+        <span class="brand-copy"><strong>OPERATION E CORP</strong><small>BREACH INVESTIGATION</small></span>
+      </a>
+      <nav class="nav-links" id="siteNavLinks" aria-label="Primary navigation">
+        <a href="#briefing">Briefing</a>
+        <a href="#challenges">Challenges</a>
+        <a href="#platform">Platform</a>
+        <a href="#faq">Field notes</a>
+        <a href="#scoreboard">Scoreboard</a>
+      </nav>
+      <div class="nav-actions">
+        <span class="score-chip" id="scoreChip" hidden aria-label="Your score">
+          <svg aria-hidden="true"><use href="#i-check"/></svg><span id="scoreValue">0</span><span>PTS</span>
+        </span>
+        <div class="user-chip" id="userChip" hidden>
+          <span class="user-initial" id="userInitial">E</span>
+          <span id="userName">Player</span>
+          <button class="logout-btn" id="logoutBtn" type="button">EXIT</button>
+        </div>
+        <button class="button button-primary button-small" id="registerBtn" type="button">Enter range</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <div id="homeView">
+    <section class="hero" id="top">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <div class="eyebrow">Six-stage cybersecurity range</div>
+            <h1>Trace the breach.<br><span class="accent">Recover the truth.</span></h1>
+            <p class="hero-lede">A connected incident-response investigation through E Corp’s synthetic systems. Follow the evidence from a forged alert to the final Linux host—one verified flag at a time.</p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="#challenges">Explore challenges <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+              <a class="button button-secondary" href="#briefing">Mission briefing</a>
+            </div>
+            <div class="hero-meta">
+              <span><svg aria-hidden="true"><use href="#i-shield"/></svg>Fictional incident · synthetic data</span>
+              <span><svg aria-hidden="true"><use href="#i-layers"/></svg>Progressive, six-stage path</span>
+            </div>
+          </div>
+          <div class="hero-visual">
+            <svg class="hero-art" viewBox="0 0 600 420" role="img" aria-label="Abstract incident investigation visualization with connected evidence nodes">
+              <defs>
+                <pattern id="art-grid" width="28" height="28" patternUnits="userSpaceOnUse">
+                  <path d="M28 0H0V28" fill="none" stroke="#9fb8c5" stroke-opacity=".075" stroke-width="1"/>
+                </pattern>
+                <linearGradient id="art-core" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#b5f36b" stop-opacity=".16"/>
+                  <stop offset="1" stop-color="#6ed9d2" stop-opacity=".035"/>
+                </linearGradient>
+                <linearGradient id="art-line" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0" stop-color="#b5f36b" stop-opacity=".05"/>
+                  <stop offset=".5" stop-color="#b5f36b" stop-opacity=".82"/>
+                  <stop offset="1" stop-color="#6ed9d2" stop-opacity=".2"/>
+                </linearGradient>
+              </defs>
+              <rect x="12" y="12" width="576" height="396" rx="19" fill="url(#art-grid)"/>
+              <g fill="none" stroke="#79929b" stroke-opacity=".18" stroke-width="1">
+                <path d="M51 73h93l42 38h83M548 86h-74l-36 36h-54M45 333h102l42-42h53M551 325h-94l-39-36h-58"/>
+                <path d="M104 57v39m391-21v28M86 304v43m408-36v34" stroke-dasharray="3 6"/>
+              </g>
+              <g class="art-sweep" opacity=".7">
+                <path d="M300 211 300 79a132 132 0 0 1 93 39Z" fill="#b5f36b" fill-opacity=".035"/>
+              </g>
+              <g class="art-ring" fill="none" stroke="#91c9af">
+                <circle cx="300" cy="211" r="135" stroke-opacity=".18" stroke-dasharray="2 8"/>
+                <circle cx="300" cy="211" r="105" stroke-opacity=".17"/>
+                <circle cx="300" cy="211" r="78" stroke-opacity=".24" stroke-dasharray="3 7"/>
+              </g>
+              <path d="M104 96 190 135M496 104l-79 38M110 320l84-37m296 34-77-35" fill="none" stroke="url(#art-line)" stroke-width="1.3" stroke-dasharray="5 7"/>
+              <g fill="#b5f36b">
+                <circle cx="190" cy="135" r="3.3"/><circle cx="417" cy="142" r="3.3"/>
+                <circle cx="194" cy="283" r="3.3"/><circle cx="413" cy="282" r="3.3"/>
+              </g>
+              <g>
+                <circle cx="300" cy="211" r="58" fill="url(#art-core)" stroke="#8dbd91" stroke-opacity=".58"/>
+                <circle cx="300" cy="211" r="47" fill="#0c1719" stroke="#b5f36b" stroke-opacity=".2"/>
+                <path d="M300 169 326 179v17c0 18-11 29-26 38-15-9-26-20-26-38v-17l26-10Z" fill="#b5f36b" fill-opacity=".08" stroke="#b5f36b" stroke-width="1.6" stroke-linejoin="round"/>
+                <path d="m289 210 7 7 16-17" fill="none" stroke="#b5f36b" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="300" cy="211" r="67" fill="none" stroke="#b5f36b" stroke-opacity=".22" stroke-dasharray="2 7"/>
+              </g>
+              <g class="art-float-a">
+                <rect x="42" y="45" width="119" height="54" rx="9" fill="#0c151e" stroke="#30433f"/>
+                <circle cx="59" cy="63" r="4" fill="#b5f36b"/>
+                <text x="72" y="66" fill="#d4e1dc" font-family="ui-monospace,monospace" font-size="9" letter-spacing="1.1">EMAIL / EC-01</text>
+                <path d="M55 79h91m-91 7h56" stroke="#648078" stroke-opacity=".6" stroke-width="2" stroke-linecap="round"/>
+              </g>
+              <g class="art-float-b">
+                <rect x="430" y="57" width="126" height="54" rx="9" fill="#0c151e" stroke="#30433f"/>
+                <circle cx="447" cy="75" r="4" fill="#6ed9d2"/>
+                <text x="460" y="78" fill="#d4e1dc" font-family="ui-monospace,monospace" font-size="9" letter-spacing="1.1">PORTAL / EC-04</text>
+                <path d="M443 91h98m-98 7h62" stroke="#648078" stroke-opacity=".6" stroke-width="2" stroke-linecap="round"/>
+              </g>
+              <g>
+                <rect x="55" y="292" width="132" height="57" rx="9" fill="#0c151e" stroke="#30433f"/>
+                <circle cx="73" cy="311" r="4" fill="#88bdf4"/>
+                <text x="86" y="314" fill="#d4e1dc" font-family="ui-monospace,monospace" font-size="9" letter-spacing="1.1">PCAP / EC-05</text>
+                <path d="M69 329h103m-103 8h66" stroke="#648078" stroke-opacity=".6" stroke-width="2" stroke-linecap="round"/>
+              </g>
+              <g>
+                <rect x="414" y="291" width="139" height="57" rx="9" fill="#0c151e" stroke="#30433f"/>
+                <circle cx="432" cy="310" r="4" fill="#f0bd69"/>
+                <text x="445" y="313" fill="#d4e1dc" font-family="ui-monospace,monospace" font-size="9" letter-spacing="1.1">LINUX / EC-06</text>
+                <path d="M428 328h108m-108 8h71" stroke="#648078" stroke-opacity=".6" stroke-width="2" stroke-linecap="round"/>
+              </g>
+              <text x="300" y="392" text-anchor="middle" fill="#7f999d" font-family="ui-monospace,monospace" font-size="8" letter-spacing="2.2">FOLLOW THE EVIDENCE · VERIFY EACH FLAG</text>
+            </svg>
+            <span class="visual-caption">Investigation map / 01—06</span>
+          </div>
+        </div>
+        <div class="hero-stats" aria-label="Range summary">
+          <div class="hero-stat"><strong>06</strong><span>connected stages</span></div>
+          <div class="hero-stat"><strong>06</strong><span>security domains</span></div>
+          <div class="hero-stat"><strong>1,000</strong><span>maximum base points</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="briefing">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">01 / Incident briefing</p>
+            <h2 class="section-title">One breach. Six evidence trails.</h2>
+          </div>
+          <p class="section-intro">Designed as a guided CTF for cybersecurity learners: each solved stage reveals the next piece of the fictional E Corp incident.</p>
+        </div>
+        <div class="briefing-grid">
+          <article class="briefing-card">
+            <h3>Start with the evidence, not assumptions.</h3>
+            <p>Inspect a suspicious email, recover a clue hidden in an image, decode an attacker message, and investigate a deliberately vulnerable employee portal. Then trace a network capture and finish on a Linux host.</p>
+            <p>Stages unlock in order. Submit the recovered flag through the board to record a solve and continue the chain.</p>
+            <span class="briefing-note"><svg aria-hidden="true"><use href="#i-shield"/></svg>All names, accounts, and incident data are fictional.</span>
+          </article>
+          <article class="curve-card" aria-label="Difficulty progression: two easy stages, two moderate, one moderate-hard, one hard">
+            <h3>Difficulty curve</h3>
+            <div class="curve-track">
+              <div class="curve-step"><span class="curve-node">01</span><strong>EC-01</strong><small>Easy</small></div>
+              <div class="curve-step"><span class="curve-node">02</span><strong>EC-02</strong><small>Easy</small></div>
+              <div class="curve-step"><span class="curve-node">03</span><strong>EC-03</strong><small>Moderate</small></div>
+              <div class="curve-step"><span class="curve-node">04</span><strong>EC-04</strong><small>Moderate</small></div>
+              <div class="curve-step"><span class="curve-node">05</span><strong>EC-05</strong><small>Mod–Hard</small></div>
+              <div class="curve-step"><span class="curve-node">06</span><strong>EC-06</strong><small>Hard</small></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section challenge-section" id="challenges">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">02 / Challenge board</p>
+            <h2 class="section-title">Choose your next lead.</h2>
+          </div>
+          <p class="section-intro">Select a stage to open its mission dossier with story, objectives, evidence, hints and flag submission. Sign in to begin EC-01; each next stage unlocks after a verified solve.</p>
+        </div>
+        <div class="board-summary"><svg aria-hidden="true"><use href="#i-layers"/></svg><span>Sequential path</span><span aria-hidden="true">·</span><span>1,000 base points</span><span aria-hidden="true">·</span><span>Hints have score costs</span></div>
+        <div class="challenge-grid" id="challengeGrid">
+
+          <a class="stage-card stage-link" href="?challenge=ec01" data-open-ch="ec01" data-stage="1" data-challenge="ec01" aria-label="Open EC-01 mission briefing">
+            <div class="stage-top"><div class="stage-label"><span class="stage-index">EC-01</span><span>·</span><span>DIGITAL FORENSICS</span></div><span class="stage-state status-start" data-status>START</span></div>
+            <div class="stage-art"><svg aria-hidden="true"><use href="#i-mail"/></svg></div>
+            <div class="stage-heading"><h3>The Forged Security Alert</h3><p>Inspect a suspicious email and trace the concealed incident reference in its headers.</p></div>
+            <div class="stage-tags"><span class="stage-tag">EASY</span><span class="stage-tag points">100 PTS</span><span class="stage-tag">EVIDENCE</span></div>
+            <p class="stage-tools"><strong>Try:</strong> text editor · email-header analysis</p>
+            <div class="stage-open-cta"><span>Open mission briefing</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></div>
+          </a>
+
+          <a class="stage-card stage-link" href="?challenge=ec02" data-open-ch="ec02" data-stage="2" data-challenge="ec02" aria-label="Open EC-02 mission briefing">
+            <div class="stage-top"><div class="stage-label"><span class="stage-index">EC-02</span><span>·</span><span>STEGANOGRAPHY</span></div><span class="stage-state status-locked" data-status>LOCKED</span></div>
+            <div class="stage-art"><svg aria-hidden="true"><use href="#i-image"/></svg></div>
+            <div class="stage-heading"><h3>The Password-Protected Image</h3><p>Read the image metadata, follow its clue, and extract the embedded message.</p></div>
+            <div class="stage-tags"><span class="stage-tag">EASY</span><span class="stage-tag points">100 PTS</span><span class="stage-tag">IMAGE</span></div>
+            <p class="stage-tools"><strong>Try:</strong> ExifTool · Steghide</p>
+            <div class="stage-open-cta"><span>Open mission briefing</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></div>
+          </a>
+
+          <a class="stage-card stage-link" href="?challenge=ec03" data-open-ch="ec03" data-stage="3" data-challenge="ec03" aria-label="Open EC-03 mission briefing">
+            <div class="stage-top"><div class="stage-label"><span class="stage-index">EC-03</span><span>·</span><span>CRYPTOGRAPHY</span></div><span class="stage-state status-locked" data-status>LOCKED</span></div>
+            <div class="stage-art"><svg aria-hidden="true"><use href="#i-code"/></svg></div>
+            <div class="stage-heading"><h3>The Three-Layer Attacker Message</h3><p>Unwrap a layered payload and identify the key that points toward the portal.</p></div>
+            <div class="stage-tags"><span class="stage-tag">MODERATE</span><span class="stage-tag points">150 PTS</span><span class="stage-tag">CIPHER</span></div>
+            <p class="stage-tools"><strong>Try:</strong> Base64 · hex · Vigenère analysis</p>
+            <div class="stage-open-cta"><span>Open mission briefing</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></div>
+          </a>
+
+          <a class="stage-card stage-link" href="?challenge=ec04" data-open-ch="ec04" data-stage="4" data-challenge="ec04" aria-label="Open EC-04 mission briefing">
+            <div class="stage-top"><div class="stage-label"><span class="stage-index">EC-04</span><span>·</span><span>WEB SECURITY</span></div><span class="stage-state status-locked" data-status>LOCKED</span></div>
+            <div class="stage-art"><svg aria-hidden="true"><use href="#i-globe"/></svg></div>
+            <div class="stage-heading"><h3>The Compromised Employee Portal</h3><p>Explore the fictional portal’s exposed paths and investigate its broken access controls.</p></div>
+            <div class="stage-tags"><span class="stage-tag">MODERATE</span><span class="stage-tag points">150 PTS</span><span class="stage-tag">LIVE WEB LAB</span></div>
+            <p class="stage-tools"><strong>Try:</strong> browser dev tools · curl</p>
+            <div class="stage-open-cta"><span>Open mission briefing</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></div>
+          </a>
+
+          <a class="stage-card stage-link" href="?challenge=ec05" data-open-ch="ec05" data-stage="5" data-challenge="ec05" aria-label="Open EC-05 mission briefing">
+            <div class="stage-top"><div class="stage-label"><span class="stage-index">EC-05</span><span>·</span><span>NETWORKING</span></div><span class="stage-state status-locked" data-status>LOCKED</span></div>
+            <div class="stage-art"><svg aria-hidden="true"><use href="#i-network"/></svg></div>
+            <div class="stage-heading"><h3>Tracing the Data Exfiltration</h3><p>Follow an HTTP conversation in the capture to recover the next flag and SSH details.</p></div>
+            <div class="stage-tags"><span class="stage-tag">MOD–HARD</span><span class="stage-tag points">200 PTS</span><span class="stage-tag">PCAP</span></div>
+            <p class="stage-tools"><strong>Try:</strong> Wireshark · HTTP stream follow</p>
+            <div class="stage-open-cta"><span>Open mission briefing</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></div>
+          </a>
+
+          <a class="stage-card stage-link" href="?challenge=ec06" data-open-ch="ec06" data-stage="6" data-challenge="ec06" aria-label="Open EC-06 mission briefing">
+            <div class="stage-top"><div class="stage-label"><span class="stage-index">EC-06</span><span>·</span><span>LINUX / SYSTEM SECURITY</span></div><span class="stage-state status-locked" data-status>LOCKED</span></div>
+            <div class="stage-art"><svg aria-hidden="true"><use href="#i-terminal"/></svg></div>
+            <div class="stage-heading"><h3>The Final Breach Investigation</h3><p>Use the recovered analyst access, investigate the host, and unlock the protected report.</p></div>
+            <div class="stage-tags"><span class="stage-tag">HARD</span><span class="stage-tag points">300 PTS</span><span class="stage-tag">SSH LAB</span></div>
+            <p class="stage-tools"><strong>Try:</strong> OpenSSH · Linux shell · unzip</p>
+            <div class="stage-open-cta"><span>Open mission briefing</span><svg aria-hidden="true"><use href="#i-arrow"/></svg></div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="platform">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">03 / How the lab is built</p>
+            <h2 class="section-title">A small stack, doing real work.</h2>
+          </div>
+          <p class="section-intro">The interface reflects the project that actually runs: one Flask platform and two interactive challenge services, with downloadable evidence for the other stages.</p>
+        </div>
+        <div class="architecture-grid">
+          <article class="architecture-card">
+            <div class="architecture-icon"><svg aria-hidden="true"><use href="#i-user"/></svg></div>
+            <h3>Player & evidence</h3>
+            <p>Players use the browser-based board. Evidence for EC-01, EC-02, EC-03 and EC-05 is released as each stage unlocks.</p>
+            <code>browser → challenge board</code>
+          </article>
+          <article class="architecture-card">
+            <div class="architecture-icon"><svg aria-hidden="true"><use href="#i-server"/></svg></div>
+            <h3>CTF platform</h3>
+            <p>Flask handles callsigns, ordered progression, server-side flag checks, hints and the live scoreboard. State is stored in SQLite.</p>
+            <code>Flask · SQLite database</code>
+          </article>
+          <article class="architecture-card">
+            <div class="architecture-icon"><svg aria-hidden="true"><use href="#i-globe-small"/></svg></div>
+            <h3>Interactive targets</h3>
+            <p>EC-04 is a deliberately vulnerable Flask portal; EC-06 is a Debian-based SSH investigation target within the challenge environment.</p>
+            <code>EC-04 · Web &nbsp;|&nbsp; EC-06 · SSH</code>
+          </article>
+        </div>
+        <div class="architecture-note"><svg aria-hidden="true"><use href="#i-alert"/></svg><p><strong>Authorized challenge scope:</strong> the web and SSH targets intentionally demonstrate vulnerable behaviour. Interact only with targets provided as part of this CTF; do not apply techniques to unrelated systems.</p></div>
+        <div class="lab-specs" aria-label="Platform summary">
+          <div class="lab-spec"><span>Challenge path</span><strong>Six sequential stages</strong></div>
+          <div class="lab-spec"><span>Platform runtime</span><strong>Flask · Python 3.11</strong></div>
+          <div class="lab-spec"><span>Player state</span><strong>SQLite database</strong></div>
+          <div class="lab-spec"><span>Flag checks</span><strong>Validated server-side</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section scoreboard-section" id="scoreboard">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">04 / Live standings</p>
+            <h2 class="section-title">Scoreboard</h2>
+          </div>
+          <p class="section-intro">Scores and solves are read from the running platform. Players appear here after their first accepted flag.</p>
+        </div>
+        <div class="score-layout">
+          <div class="score-panel">
+            <div class="score-panel-head"><div><strong>Top investigators</strong> <span>· BEST 25</span></div><button class="refresh-button" id="refreshScoreboard" type="button"><svg aria-hidden="true"><use href="#i-refresh"/></svg>Refresh</button></div>
+            <div class="table-scroll">
+              <table class="score-table">
+                <thead><tr><th scope="col">Rank</th><th scope="col">Callsign</th><th scope="col">Solves</th><th scope="col">Score</th></tr></thead>
+                <tbody id="leaderboardBody"><tr><td colspan="4" class="table-state">Connecting to the platform…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <aside class="score-side">
+            <h3>Scoring rules</h3>
+            <p>Each accepted flag awards the stage’s base points. Hint costs are subtracted from the player’s total.</p>
+            <div><div class="score-number">1,000</div><small>maximum base score · before hints</small></div>
+            <div class="hint-legend" aria-label="Hint costs vary by stage">
+              <div><span>First hint</span><strong>FREE</strong></div>
+              <div><span>Second hint</span><strong>−10 to −20</strong></div>
+              <div><span>Third hint</span><strong>−25 to −40</strong></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="faq">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">05 / Field notes</p>
+            <h2 class="section-title">Before you dive in.</h2>
+          </div>
+          <p class="section-intro">A few practical details about progress, hints and the environment.</p>
+        </div>
+        <div class="faq-grid">
+          <article class="faq-item"><h3>How does a stage unlock?</h3><p>Stages follow a fixed chain. A correct flag is checked by the server; solving the current stage unlocks the next stage’s evidence or access card.</p></article>
+          <article class="faq-item"><h3>How is progress recorded?</h3><p>Accounts, solves and hint costs are recorded by the platform. The scoreboard updates after a player submits their first accepted flag.</p></article>
+          <article class="faq-item"><h3>How do hints affect score?</h3><p>Each stage has three optional hints. The first costs zero; later hint costs vary by challenge and are shown before you request them.</p></article>
+          <article class="faq-item"><h3>What flag format should I expect?</h3><p>Submit the complete flag recovered from that stage. The server trims surrounding whitespace and compares it without revealing the stored answer to the browser.</p></article>
+          <article class="faq-item"><h3>Where are the interactive targets?</h3><p>Access details are revealed by the EC-04 and EC-06 stage cards when you reach them in the challenge sequence.</p></article>
+          <article class="faq-item"><h3>What is in scope?</h3><p>Only the fictional systems identified in this CTF are in scope. Do not test the techniques against unrelated systems.</p></article>
+        </div>
+      </div>
+    </section>
+    </div>
+
+    <section class="mission-view" id="missionView" hidden aria-labelledby="missionTitle">
+      <div class="wrap">
+        <div class="mission-topline">
+          <button class="mission-back" id="backToBoard" type="button"><svg aria-hidden="true"><use href="#i-arrow"/></svg>Back to challenge board</button>
+          <div class="mission-breadcrumb"><span>OPERATION E CORP</span><span aria-hidden="true">/</span><strong id="missionBreadcrumb">EC-01</strong></div>
+        </div>
+        <header class="mission-hero">
+          <div>
+            <div class="mission-eyebrow" id="missionCategory">DIGITAL FORENSICS</div>
+            <h1 id="missionTitle">The Forged Security Alert</h1>
+            <p class="mission-description" id="missionDescription"></p>
+            <div class="mission-badges" id="missionBadges"></div>
+          </div>
+          <div class="mission-visual"><svg id="missionIcon" viewBox="0 0 64 64" aria-hidden="true"><use href="#i-mail"/></svg></div>
+        </header>
+
+        <div class="mission-layout">
+          <div class="mission-content">
+            <section class="mission-panel">
+              <div class="mission-panel-head"><svg aria-hidden="true"><use href="#i-brain"/></svg>Incident file</div>
+              <h2>Story briefing</h2>
+              <p class="mission-story" id="missionStory"></p>
+            </section>
+            <section class="mission-panel">
+              <div class="mission-panel-head"><svg aria-hidden="true"><use href="#i-check"/></svg>Assignment</div>
+              <h2>Objectives</h2>
+              <ol class="objective-list" id="missionObjectives"></ol>
+            </section>
+            <section class="mission-panel">
+              <div class="mission-panel-head"><svg aria-hidden="true"><use href="#i-layers"/></svg>Evidence</div>
+              <h2>Evidence &amp; downloads</h2>
+              <div id="missionResources"></div>
+              <p class="mission-note" id="resourceNote">Use the supplied evidence as your source of truth. Keep findings within the authorized challenge scope.</p>
+            </section>
+            <section class="mission-panel">
+              <div class="mission-panel-head"><svg aria-hidden="true"><use href="#i-brain"/></svg>Investigation support</div>
+              <h2>Hints</h2>
+              <p class="mission-note">Three optional clues are available. The cost is shown before each paid hint.</p>
+              <div class="mission-hints" id="missionHints"></div>
+            </section>
+            <section class="mission-panel">
+              <div class="mission-panel-head"><svg aria-hidden="true"><use href="#i-shield"/></svg>Verification</div>
+              <h2>Submit your flag</h2>
+              <div class="mission-flag-area" id="missionFlagArea"></div>
+            </section>
+          </div>
+
+          <aside class="mission-sidecard" aria-label="Challenge status and navigation">
+            <div class="mission-side-head"><h2>Mission control</h2><span class="mission-status locked" id="missionStatus">Checking</span></div>
+            <div class="mission-metrics">
+              <div class="mission-metric"><span>Challenge</span><strong id="missionMetricId">EC-01 / 06</strong></div>
+              <div class="mission-metric"><span>Points</span><strong id="missionPoints">100 PTS</strong></div>
+              <div class="mission-metric"><span>Difficulty</span><strong id="missionDifficulty">EASY</strong></div>
+              <div class="mission-metric"><span>Domain</span><strong id="missionDomain">Forensics</strong></div>
+            </div>
+            <h3>Investigation chain</h3>
+            <div class="mission-chain" id="missionChain" aria-label="Challenge navigation"></div>
+            <p class="mission-prereq" id="missionPrereq"></p>
+            <div class="mission-action" id="missionAction"></div>
+          </aside>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer" id="siteFooter">
+    <div class="wrap footer-row">
+      <div><div class="footer-brand">OPERATION E CORP BREACH</div><div class="footer-copy">Educational CTF · synthetic incident · six stages</div></div>
+      <div class="footer-links"><a href="#briefing">Briefing</a><a href="#challenges">Challenges</a><a href="#faq">Field notes</a><a href="#scoreboard">Scoreboard</a></div>
+    </div>
+  </footer>
+
+  <div class="modal-backdrop" id="authModal" hidden>
+    <section class="auth-dialog" role="dialog" aria-modal="true" aria-labelledby="authTitle" aria-describedby="authDescription">
+      <button class="modal-close" id="closeAuth" type="button" aria-label="Close sign in dialog"><svg aria-hidden="true"><use href="#i-close"/></svg></button>
+      <div class="auth-mark"><svg aria-hidden="true"><use href="#i-user"/></svg></div>
+      <h2 id="authTitle">Join the investigation.</h2>
+      <p id="authDescription">Create a callsign to start. If it already exists, enter the same password to sign in.</p>
+      <form class="auth-form" id="authForm">
+        <div class="auth-field"><label for="callsign">CALLSIGN</label><input id="callsign" name="username" type="text" minlength="3" maxlength="18" pattern="[A-Za-z0-9_]+" autocomplete="username" placeholder="e.g. night_shift" required><span class="auth-hint">3–18 characters · letters, numbers, underscore</span></div>
+        <div class="auth-field"><label for="playerPassword">PASSWORD</label><input id="playerPassword" name="password" type="password" minlength="6" autocomplete="current-password" placeholder="At least 6 characters" required></div>
+        <p class="auth-error" id="authError" aria-live="polite"></p>
+        <button class="button button-primary" id="authSubmit" type="submit">Create account / sign in <svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
+      </form>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="completionModal" hidden>
+    <section class="completion-dialog" role="dialog" aria-modal="true" aria-labelledby="completionTitle" aria-describedby="completionCopy">
+      <button class="modal-close" id="closeCompletion" type="button" aria-label="Close achievement dialog"><svg aria-hidden="true"><use href="#i-close"/></svg></button>
+      <div class="completion-flagline"><svg aria-hidden="true"><use href="#i-check"/></svg>E CORP SECURITY OPERATIONS · MISSION COMPLETE</div>
+      <h2 id="completionTitle">Congratulations, <span id="completionPlayer">Investigator</span>!</h2>
+      <p class="completion-lede" id="completionCopy">You’ve successfully completed <strong>OPERATION E CORP BREACH</strong>, conquering all six cybersecurity challenges.</p>
+      <div class="badge-preview" id="badgePreview" aria-label="Achievement badge preview"></div>
+      <p class="completion-recognition"><strong>🏆 Achievement Unlocked: ELITE CYBER INVESTIGATOR</strong><br>Your mission is complete. Your achievement is now officially recognized.</p>
+      <div class="completion-actions">
+        <button class="button button-primary" id="downloadBadge" type="button"><svg aria-hidden="true"><use href="#i-download"/></svg>Download Your Achievement Badge</button>
+        <button class="button button-secondary" id="downloadBadgeSvg" type="button">Download vector SVG</button>
+      </div>
+      <p class="download-status" id="badgeDownloadStatus" aria-live="polite"></p>
+      <p class="completion-subtle">PLAYER-SPECIFIC AWARD · GENERATED FOR THIS INVESTIGATION</p>
+    </section>
+  </div>
+
+  <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="false"></div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const $ = (selector, root = document) => root.querySelector(selector);
+      const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+      const authModal = $('#authModal');
+      const authForm = $('#authForm');
+      const authError = $('#authError');
+      const authSubmit = $('#authSubmit');
+      const challengeGrid = $('#challengeGrid');
+      const completionModal = $('#completionModal');
+      let lastFocused = null;
+      let lastCompletionFocus = null;
+      let currentState = null;
+      let currentChallengeId = null;
+      let completionInfo = null;
+
+      const MISSION_DETAILS = {
+        ec01: {
+          icon: 'i-mail', domain: 'Forensics',
+          description: 'A suspicious security alert is the first lead in a targeted breach investigation.',
+          story: 'An employee has forwarded an urgent security alert that appears to carry E Corp branding. The message looks convincing at a glance, but its routing details tell a different story. Inspect the original message, distinguish the visible sender from the real reply path, and recover the incident reference that starts the chain.',
+          objectives: ['Inspect the raw email source and its complete header block.', 'Trace the actual reply destination and identify the suspicious routing clues.', 'Submit the incident flag to verify the first lead.'],
+          tools: ['Text editor', 'Email-header analysis']
+        },
+        ec02: {
+          icon: 'i-image', domain: 'Steganography',
+          description: 'A routine event photo may be carrying evidence hidden in plain sight.',
+          story: 'The first lead points to a company event photograph sent during the same period as the alert. The image looks ordinary, yet its metadata contains an instruction and the file carries concealed content. Connect the clue from EC-01 to the image, then extract what was hidden.',
+          objectives: ['Inspect the image metadata before changing or extracting anything.', 'Connect the metadata clue to the incident reference recovered in EC-01.', 'Extract and verify the hidden message.'],
+          tools: ['ExifTool', 'Steghide']
+        },
+        ec03: {
+          icon: 'i-code', domain: 'Cryptography',
+          description: 'Unwrap a layered attacker message to locate the next system in the chain.',
+          story: 'The recovered note is not readable yet. It has been encoded in several layers, and one stage provides the key needed for the final layer. Work methodically: identify each representation, decode it in order, and follow the resulting lead to the next service.',
+          objectives: ['Identify and decode the outer text encoding.', 'Convert the next representation and recognize the cipher used.', 'Use the prior stage’s clue to recover the portal lead and flag.'],
+          tools: ['Base64', 'Hex', 'Vigenère analysis']
+        },
+        ec04: {
+          icon: 'i-globe', domain: 'Web security',
+          description: 'Investigate a fictional employee portal with deliberately broken access controls.',
+          story: 'The message from EC-03 identifies an employee portal connected to the incident. The site exposes more than its designers intended: public-facing files and application routes can reveal a trail into an employee’s open case. Map the exposed surface and establish what the portal failed to protect.',
+          objectives: ['Inspect the portal’s public pages and published discovery hints.', 'Follow the exposed paths to the employee record tied to the case.', 'Verify the incident evidence and submit the stage flag.'],
+          tools: ['Browser developer tools', 'curl', 'HTTP inspection']
+        },
+        ec05: {
+          icon: 'i-network', domain: 'Networking',
+          description: 'Trace the suspected data exfiltration through a captured network conversation.',
+          story: 'A packet capture recovered from the portal incident contains the next piece of evidence. Normal web traffic hides one anomalous upload. Isolate the conversation, follow the relevant stream, and recover both the flag and the access details needed for the final investigation.',
+          objectives: ['Open the capture and narrow the traffic to relevant web requests.', 'Identify the unusual upload and inspect its full conversation.', 'Record the recovered flag and analyst access details for EC-06.'],
+          tools: ['Wireshark', 'HTTP stream analysis']
+        },
+        ec06: {
+          icon: 'i-terminal', domain: 'Linux security',
+          description: 'Complete the investigation on the final host and recover the protected report.',
+          story: 'The network evidence points to an analyst account on the final Linux system. The visible files do not tell the whole story: hidden notes and system logs point toward an encrypted report left behind by the attacker. Reconstruct the trail and submit the final flag to close the breach.',
+          objectives: ['Use the analyst access recovered from EC-05 to inspect the host.', 'Follow hidden-file and log evidence to locate the protected archive.', 'Recover the report contents and submit the final flag.'],
+          tools: ['OpenSSH', 'Linux shell', 'unzip']
+        }
+      };
+
+      const icons = {
+        arrow: '<svg aria-hidden="true"><use href="#i-arrow"/></svg>',
+        check: '<svg aria-hidden="true"><use href="#i-check"/></svg>',
+        lock: '<svg aria-hidden="true"><use href="#i-lock"/></svg>',
+        download: '<svg aria-hidden="true"><use href="#i-download"/></svg>'
+      };
+
+      function escapeHTML(value) {
+        return String(value ?? '').replace(/[&<>"']/g, char => ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        })[char]);
+      }
+
+      async function api(path, options = {}) {
+        const headers = { ...(options.headers || {}) };
+        if (options.body !== undefined) headers['Content-Type'] = 'application/json';
+        const response = await fetch(path, {
+          credentials: 'same-origin',
+          ...options,
+          headers
+        });
+        const contentType = response.headers.get('content-type') || '';
+        const data = contentType.includes('application/json') ? await response.json() : {};
+        if (!response.ok) {
+          const error = new Error(data.error || `Request failed (${response.status})`);
+          error.status = response.status;
+          throw error;
+        }
+        return data;
+      }
+
+      function toast(message, kind = '') {
+        const region = $('#toastRegion');
+        const node = document.createElement('div');
+        node.className = `toast ${kind}`.trim();
+        node.setAttribute('role', kind === 'error' ? 'alert' : 'status');
+        node.textContent = message;
+        region.append(node);
+        window.setTimeout(() => node.remove(), 4300);
+      }
+
+      function openAuth() {
+        lastFocused = document.activeElement;
+        authModal.hidden = false;
+        document.body.style.overflow = 'hidden';
+        authError.textContent = '';
+        window.setTimeout(() => $('#callsign').focus(), 0);
+      }
+
+      function closeAuth() {
+        authModal.hidden = true;
+        document.body.style.overflow = '';
+        if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
+      }
+
+      function awardSerial() {
+        const bytes = new Uint8Array(4);
+        if (window.crypto?.getRandomValues) window.crypto.getRandomValues(bytes);
+        else for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
+        return `ECR-${[...bytes].map(value => value.toString(16).padStart(2, '0')).join('').toUpperCase()}`;
+      }
+
+      function buildBadgeSVG(info) {
+        const player = escapeHTML(info.username);
+        const serial = escapeHTML(info.serial);
+        const date = escapeHTML(info.date);
+        return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="850" viewBox="0 0 1200 850" role="img" aria-labelledby="badge-title badge-desc">
+          <title id="badge-title">Elite Cyber Investigator achievement badge for ${player}</title>
+          <desc id="badge-desc">Operation E Corp Breach mission complete. Awarded to ${player} for completing all six cybersecurity challenges.</desc>
+          <defs>
+            <linearGradient id="badge-accent" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c7ff72"/><stop offset=".48" stop-color="#55e0cf"/><stop offset="1" stop-color="#8d9cff"/></linearGradient>
+            <linearGradient id="badge-frame" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b5f36b" stop-opacity=".35"/><stop offset=".5" stop-color="#6ed9d2" stop-opacity=".8"/><stop offset="1" stop-color="#9a9dff" stop-opacity=".4"/></linearGradient>
+            <radialGradient id="badge-glow"><stop offset="0" stop-color="#70e0bd" stop-opacity=".12"/><stop offset="1" stop-color="#70e0bd" stop-opacity="0"/></radialGradient>
+            <pattern id="badge-grid" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M28 0H0V28" fill="none" stroke="#9fb8c5" stroke-opacity=".07" stroke-width="1"/></pattern>
+          </defs>
+          <rect width="1200" height="850" fill="#071019"/>
+          <ellipse cx="600" cy="360" rx="430" ry="360" fill="url(#badge-glow)"/>
+          <rect x="24" y="24" width="1152" height="802" rx="30" fill="#0b1520" stroke="url(#badge-frame)" stroke-width="2"/>
+          <rect x="42" y="42" width="1116" height="766" rx="23" fill="url(#badge-grid)" stroke="#263b49" stroke-opacity=".7"/>
+          <g fill="none" stroke="#55757a" stroke-opacity=".64" stroke-width="2">
+            <path d="M62 124h94l22 22h56M1138 124h-94l-22 22h-56M62 726h94l22-22h56M1138 726h-94l-22-22h-56"/>
+            <path d="M82 96v42m1036-42v42M82 712v42m1036-42v42" stroke-dasharray="3 7"/>
+          </g>
+          <g fill="#b5f36b"><circle cx="234" cy="146" r="4"/><circle cx="966" cy="146" r="4"/><circle cx="234" cy="704" r="4"/><circle cx="966" cy="704" r="4"/></g>
+          <text x="600" y="91" text-anchor="middle" fill="#9fb2bb" font-family="ui-monospace,monospace" font-size="15" font-weight="700" letter-spacing="4">E CORP SECURITY OPERATIONS</text>
+          <g>
+            <circle cx="600" cy="221" r="91" fill="#0d1b24" stroke="#263f46" stroke-width="2"/>
+            <circle cx="600" cy="221" r="78" fill="none" stroke="url(#badge-accent)" stroke-opacity=".45" stroke-width="1.5" stroke-dasharray="3 8"/>
+            <path d="M600 151 654 171v42c0 37-20 63-54 82-34-19-54-45-54-82v-42l54-20Z" fill="#10232a" stroke="url(#badge-accent)" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M572 221h56m-28-28v56" stroke="#6ed9d2" stroke-opacity=".25" stroke-width="1.5"/>
+            <text x="600" y="220" text-anchor="middle" fill="#d9f6c1" font-family="ui-monospace,monospace" font-size="31" font-weight="800" letter-spacing="-2">EC</text>
+            <path d="m585 235 10 10 21-23" fill="none" stroke="#b5f36b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          </g>
+          <text x="600" y="356" text-anchor="middle" fill="#6ed9d2" font-family="ui-monospace,monospace" font-size="14" font-weight="700" letter-spacing="4">OPERATION E CORP BREACH</text>
+          <text x="600" y="421" text-anchor="middle" fill="#f0f6f4" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="43" font-weight="800" letter-spacing="1">ELITE CYBER INVESTIGATOR</text>
+          <path d="M360 446h480" stroke="url(#badge-accent)" stroke-opacity=".6" stroke-width="2"/>
+          <text x="600" y="483" text-anchor="middle" fill="#8fa5af" font-family="ui-monospace,monospace" font-size="12" font-weight="600" letter-spacing="3">AWARDED TO</text>
+          <text x="600" y="530" text-anchor="middle" fill="#c9ff87" font-family="system-ui,Segoe UI,Arial,sans-serif" font-size="30" font-weight="700">${player}</text>
+          <rect x="188" y="566" width="824" height="57" rx="12" fill="#12231f" stroke="#456649" stroke-opacity=".9"/>
+          <path d="M208 566h184" stroke="url(#badge-accent)" stroke-width="3"/>
+          <text x="600" y="601" text-anchor="middle" fill="#d7f2cc" font-family="ui-monospace,monospace" font-size="16" font-weight="700" letter-spacing="2">MISSION COMPLETE · 6 / 6 CHALLENGES</text>
+          <g font-family="ui-monospace,monospace" font-size="11" font-weight="700" text-anchor="middle">
+            <g fill="#b5f36b"><circle cx="495" cy="670" r="17"/><circle cx="537" cy="670" r="17"/><circle cx="579" cy="670" r="17"/><circle cx="621" cy="670" r="17"/><circle cx="663" cy="670" r="17"/><circle cx="705" cy="670" r="17"/></g>
+            <g fill="#0a1518"><text x="495" y="674">01</text><text x="537" y="674">02</text><text x="579" y="674">03</text><text x="621" y="674">04</text><text x="663" y="674">05</text><text x="705" y="674">06</text></g>
+          </g>
+          <text x="95" y="773" fill="#7f949d" font-family="ui-monospace,monospace" font-size="11" letter-spacing="1.5">AWARD ID · ${serial}</text>
+          <text x="1105" y="773" text-anchor="end" fill="#7f949d" font-family="ui-monospace,monospace" font-size="11" letter-spacing="1.5">ISSUED · ${date}</text>
+          <text x="600" y="773" text-anchor="middle" fill="#6ed9d2" font-family="ui-monospace,monospace" font-size="10" letter-spacing="2">E CORP SECURITY OPERATIONS // ELITE INVESTIGATOR</text>
+        </svg>`;
+      }
+
+      function openCompletionModal(state = currentState) {
+        if (!state?.user || state.challenges?.length !== 6 || !state.challenges.every(item => item.solved)) return;
+        const username = String(state.user);
+        if (!completionInfo || completionInfo.username !== username) {
+          completionInfo = {
+            username,
+            serial: awardSerial(),
+            date: new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date())
+          };
+        }
+        $('#completionPlayer').textContent = username;
+        $('#badgePreview').innerHTML = buildBadgeSVG(completionInfo);
+        $('#badgeDownloadStatus').textContent = '';
+        lastCompletionFocus = document.activeElement;
+        completionModal.hidden = false;
+        document.body.style.overflow = 'hidden';
+        window.setTimeout(() => $('#closeCompletion').focus(), 0);
+      }
+
+      function closeCompletionModal() {
+        completionModal.hidden = true;
+        document.body.style.overflow = '';
+        if (lastCompletionFocus?.isConnected) lastCompletionFocus.focus();
+      }
+
+      function downloadBlob(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.append(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+      }
+
+      function badgeFilename(extension) {
+        const slug = (completionInfo?.username || 'investigator').toLowerCase().replace(/[^a-z0-9_-]+/g, '-');
+        return `elite-cyber-investigator-${slug}.${extension}`;
+      }
+
+      function downloadBadgeSVG() {
+        if (!completionInfo) return;
+        const svg = buildBadgeSVG(completionInfo);
+        downloadBlob(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }), badgeFilename('svg'));
+        $('#badgeDownloadStatus').textContent = 'Your vector achievement badge is downloading.';
+      }
+
+      function downloadBadgePNG() {
+        if (!completionInfo) return;
+        const button = $('#downloadBadge');
+        const status = $('#badgeDownloadStatus');
+        const svg = buildBadgeSVG(completionInfo);
+        button.disabled = true;
+        status.textContent = 'Preparing your badge…';
+        try {
+          const svgURL = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
+          const image = new Image();
+          image.onload = () => {
+            try {
+              const canvas = document.createElement('canvas');
+              canvas.width = 1600;
+              canvas.height = 1133;
+              const context = canvas.getContext('2d');
+              if (!context) throw new Error('Canvas unavailable');
+              context.drawImage(image, 0, 0, canvas.width, canvas.height);
+              canvas.toBlob(blob => {
+                URL.revokeObjectURL(svgURL);
+                if (blob) {
+                  downloadBlob(blob, badgeFilename('png'));
+                  status.textContent = 'Your PNG achievement badge is downloading.';
+                } else {
+                  downloadBadgeSVG();
+                  status.textContent = 'PNG export was unavailable, so the vector badge was downloaded instead.';
+                }
+                button.disabled = false;
+              }, 'image/png');
+            } catch (_) {
+              URL.revokeObjectURL(svgURL);
+              downloadBadgeSVG();
+              status.textContent = 'PNG export was unavailable, so the vector badge was downloaded instead.';
+              button.disabled = false;
+            }
+          };
+          image.onerror = () => {
+            URL.revokeObjectURL(svgURL);
+            downloadBadgeSVG();
+            status.textContent = 'PNG export was unavailable, so the vector badge was downloaded instead.';
+            button.disabled = false;
+          };
+          image.src = svgURL;
+        } catch (_) {
+          downloadBadgeSVG();
+          status.textContent = 'PNG export was unavailable, so the vector badge was downloaded instead.';
+          button.disabled = false;
+        }
+      }
+
+      function renderHints(challenge, allowNew = true) {
+        if (!challenge.hints || !challenge.hints.length) return '';
+        return `<div class="hint-list" aria-label="Optional hints">${challenge.hints.map(hint => {
+          const taken = Boolean(hint.taken);
+          const cost = Number(hint.cost) || 0;
+          const costLabel = cost === 0 ? 'FREE' : `−${cost} PTS`;
+          const disabled = taken || !allowNew;
+          return `<div class="hint-item">
+            <button class="hint-button" type="button" data-action="hint" data-ch="${escapeHTML(challenge.id)}" data-index="${hint.index}" ${disabled ? 'disabled' : ''}>
+              <span>${taken ? 'Hint revealed' : allowNew ? `Reveal hint ${hint.index + 1}` : 'Not requested'}</span>
+              <span class="hint-cost ${cost === 0 ? 'free' : ''}">${taken ? 'SHOWN' : allowNew ? costLabel : 'SOLVED'}</span>
+            </button>
+            ${taken && hint.text ? `<p class="hint-text">${escapeHTML(hint.text)}</p>` : ''}
+          </div>`;
+        }).join('')}</div>`;
+      }
+
+      function staticChallengeFromCard(card) {
+        if (!card) return null;
+        const index = Math.max(0, Number(card.dataset.stage) - 1);
+        const id = card.dataset.challenge;
+        const title = $('.stage-heading h3', card)?.textContent.trim() || `Challenge ${index + 1}`;
+        const category = $('.stage-label span:last-child', card)?.textContent.trim() || 'CYBERSECURITY';
+        const difficulty = $('.stage-tags .stage-tag:not(.points)', card)?.textContent.trim().replace('MOD–HARD', 'MOD-HARD') || 'MODERATE';
+        const points = Number.parseInt($('.stage-tag.points', card)?.textContent || '0', 10) || 0;
+        return {
+          id,
+          number: String(index + 1).padStart(2, '0'),
+          name: title,
+          category,
+          difficulty,
+          points,
+          artefact: null,
+          requires: index > 0 ? `ec0${index}` : null,
+          unlocked: false,
+          solved: false,
+          hints: []
+        };
+      }
+
+      function getChallengeList() {
+        if (currentState?.challenges?.length) return currentState.challenges;
+        return $$('.stage-card[data-challenge]', challengeGrid).map(staticChallengeFromCard).filter(Boolean);
+      }
+
+      function findChallenge(id) {
+        return currentState?.challenges?.find(challenge => challenge.id === id)
+          || staticChallengeFromCard($(`.stage-card[data-challenge="${id}"]`));
+      }
+
+      function renderStageCard(challenge) {
+        const card = $(`.stage-card[data-challenge="${challenge.id}"]`);
+        if (!card) return;
+        const status = $('[data-status]', card);
+        const signedIn = Boolean(currentState?.user);
+        card.classList.toggle('is-solved', Boolean(challenge.solved));
+        if (challenge.solved) {
+          status.className = 'stage-state status-solved';
+          status.textContent = 'SOLVED';
+        } else if (!signedIn && !challenge.requires) {
+          status.className = 'stage-state status-start';
+          status.textContent = 'START';
+        } else if (!signedIn || !challenge.unlocked) {
+          status.className = 'stage-state status-locked';
+          status.textContent = 'LOCKED';
+        } else {
+          status.className = 'stage-state status-ready';
+          status.textContent = 'AVAILABLE';
+        }
+        const cta = $('.stage-open-cta span', card);
+        if (cta) cta.textContent = challenge.solved ? 'Review mission' : challenge.unlocked && signedIn ? 'Continue investigation' : 'Open mission briefing';
+      }
+
+      function gateMessage(title, message, showSignIn = false) {
+        return `<div class="mission-gate">${icons.lock}<div><strong>${escapeHTML(title)}</strong><br>${escapeHTML(message)}${showSignIn ? '<br><button class="button button-secondary button-small" type="button" data-action="mission-signin">Sign in to continue</button>' : ''}</div></div>`;
+      }
+
+      function renderMission(challenge = findChallenge(currentChallengeId)) {
+        if (!challenge || !MISSION_DETAILS[challenge.id]) return;
+        const details = MISSION_DETAILS[challenge.id];
+        const signedIn = Boolean(currentState?.user);
+        const unlocked = signedIn && Boolean(challenge.unlocked);
+        const solved = Boolean(challenge.solved);
+        const challenges = getChallengeList();
+        const challengeIndex = challenges.findIndex(item => item.id === challenge.id);
+        const previous = challenges[challengeIndex - 1] || null;
+        const next = challenges[challengeIndex + 1] || null;
+        const stageCode = `EC-${challenge.number || String(challengeIndex + 1).padStart(2, '0')}`;
+
+        $('#missionBreadcrumb').textContent = stageCode;
+        $('#missionCategory').textContent = `${stageCode} / ${challenge.category}`;
+        $('#missionTitle').textContent = challenge.name;
+        $('#missionDescription').textContent = details.description;
+        $('#missionStory').textContent = details.story;
+        $('#missionMetricId').textContent = `${stageCode} / 06`;
+        $('#missionPoints').textContent = `${challenge.points} PTS`;
+        $('#missionDifficulty').textContent = String(challenge.difficulty).replace('MOD-HARD', 'MOD–HARD');
+        $('#missionDomain').textContent = details.domain;
+        $('#missionIcon use').setAttribute('href', `#${details.icon}`);
+        $('#missionBadges').innerHTML = `<span class="mission-badge">${stageCode} · STAGE ${challengeIndex + 1} OF 6</span><span class="mission-badge accent">${escapeHTML(challenge.difficulty.replace('MOD-HARD', 'MOD–HARD'))}</span><span class="mission-badge">${challenge.points} POINTS</span>`;
+        $('#missionObjectives').innerHTML = details.objectives.map(item => `<li>${escapeHTML(item)}</li>`).join('');
+        $('#resourceNote').hidden = !unlocked;
+
+        const status = $('#missionStatus');
+        if (solved) {
+          status.className = 'mission-status solved';
+          status.textContent = 'SOLVED';
+        } else if (unlocked) {
+          status.className = 'mission-status available';
+          status.textContent = 'AVAILABLE';
+        } else if (!signedIn) {
+          status.className = 'mission-status locked';
+          status.textContent = 'SIGN IN';
+        } else {
+          status.className = 'mission-status locked';
+          status.textContent = 'LOCKED';
+        }
+
+        $('#missionChain').innerHTML = challenges.map((item, index) => {
+          const classes = ['chain-node'];
+          if (item.id === challenge.id) classes.push('current');
+          if (item.solved) classes.push('solved');
+          const label = `EC-${item.number || String(index + 1).padStart(2, '0')}`;
+          return `<button class="${classes.join(' ')}" type="button" data-open-ch="${escapeHTML(item.id)}" aria-label="Open ${label}: ${escapeHTML(item.name)}">${item.number || String(index + 1).padStart(2, '0')}</button>`;
+        }).join('');
+
+        $('#missionPrereq').textContent = !signedIn
+          ? 'Sign in to record solves and unlock evidence.'
+          : challenge.requires && !previous?.solved
+            ? `Complete ${String(challenge.requires).toUpperCase().replace('EC', 'EC-')} to unlock this stage’s evidence and tools.`
+            : solved
+              ? 'Flag verified. Your progress is recorded on the challenge board.'
+              : 'Stage available. Investigate the evidence, then submit your recovered flag.';
+
+        if (!signedIn) {
+          $('#missionResources').innerHTML = gateMessage('Evidence access requires a callsign.', 'Sign in to unlock the source file for this stage.', true);
+          $('#missionHints').innerHTML = gateMessage('Hints are part of your player session.', 'Sign in to view hint costs and reveal clues.', true);
+          $('#missionFlagArea').innerHTML = gateMessage('Flag submission is locked.', 'Sign in to track your challenge progress.', true);
+        } else if (!unlocked) {
+          const req = challenge.requires ? String(challenge.requires).toUpperCase().replace('EC', 'EC-') : 'the previous stage';
+          $('#missionResources').innerHTML = gateMessage('Evidence is secured.', `Solve ${req} first to unlock this stage’s downloadable source.`);
+          $('#missionHints').innerHTML = gateMessage('Hints are secured.', `Solve ${req} first to request stage hints.`);
+          $('#missionFlagArea').innerHTML = gateMessage('Flag entry is locked.', `Solve ${req} to open this stage.`);
+        } else {
+          const filename = escapeHTML(challenge.artefact || 'challenge evidence');
+          $('#missionResources').innerHTML = `<div class="mission-resource"><div class="resource-info"><span class="resource-icon">${icons.download}</span><span><strong>Stage evidence file</strong><small title="${filename}">${filename}</small></span></div><a class="resource-download" href="/api/download/${encodeURIComponent(challenge.id)}">${icons.download}Download source</a></div>`;
+          $('#missionHints').innerHTML = renderHints(challenge, !solved);
+          if (solved) {
+            $('#missionFlagArea').innerHTML = `<div class="solved-box">${icons.check}<p><strong>Flag accepted.</strong> Challenge complete · ${challenge.points} base points awarded.</p></div>`;
+          } else {
+            $('#missionFlagArea').innerHTML = `<form class="mission-flag-form" data-action="submit" data-ch="${escapeHTML(challenge.id)}"><label class="sr-only" for="missionFlagInput">Recovered flag for ${escapeHTML(challenge.name)}</label><input class="flag-input" id="missionFlagInput" name="flag" type="text" maxlength="160" autocomplete="off" spellcheck="false" placeholder="Enter recovered flag" required><button class="button button-primary" type="submit">Verify flag ${icons.arrow}</button><p class="flag-feedback" data-feedback aria-live="polite">The platform checks flags without revealing stored answers.</p></form>`;
+          }
+        }
+
+        const action = $('#missionAction');
+        if (!signedIn) {
+          action.innerHTML = `<p>Join the investigation to unlock your first evidence file and save your progress.</p><button class="button button-primary" type="button" data-action="mission-signin">Create callsign / sign in ${icons.arrow}</button>`;
+        } else if (!unlocked) {
+          action.innerHTML = `<p>Complete the prerequisite stage to release this mission’s sources, hints and flag check.</p>`;
+        } else if (solved && next) {
+          const nextCode = `EC-${next.number}`;
+          action.innerHTML = `<p>Flag verified. Your next lead is ready.</p><button class="button button-primary" type="button" data-open-ch="${escapeHTML(next.id)}">Continue to ${nextCode} ${icons.arrow}</button>`;
+        } else if (solved) {
+          action.innerHTML = `<p>All six stages are complete. Your achievement badge is ready.</p><button class="button button-primary" type="button" data-action="show-completion">View your achievement ${icons.arrow}</button>`;
+        } else {
+          action.innerHTML = `<p>Follow the objectives, use the evidence and submit the flag to unlock the next stage.</p><div class="mission-checklist">${icons.check}<span>First hint is free · later hints reduce score</span></div>`;
+        }
+      }
+
+      function openChallenge(id, { updateHistory = true, scroll = true } = {}) {
+        if (!MISSION_DETAILS[id]) return;
+        const challenge = findChallenge(id);
+        currentChallengeId = id;
+        if (updateHistory) {
+          const url = new URL(window.location.href);
+          url.searchParams.set('challenge', id);
+          url.hash = '';
+          const route = `${url.pathname}${url.search}`;
+          if (`${window.location.pathname}${window.location.search}` !== route) {
+            window.history.pushState({ view: 'challenge', id }, '', route);
+          }
+        }
+        $('#homeView').hidden = true;
+        $('#missionView').hidden = false;
+        $('#siteNavLinks').hidden = true;
+        $('#siteFooter').hidden = true;
+        if (challenge) {
+          renderMission(challenge);
+          document.title = `${challenge.name} · Operation E Corp Breach`;
+        }
+        if (scroll) {
+          const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
+        }
+      }
+
+      function returnToBoard({ updateHistory = true, scroll = true } = {}) {
+        if (updateHistory && currentChallengeId) {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('challenge');
+          url.hash = '';
+          window.history.replaceState({ view: 'board' }, '', `${url.pathname}${url.search}`);
+        }
+        currentChallengeId = null;
+        $('#missionView').hidden = true;
+        $('#homeView').hidden = false;
+        $('#siteNavLinks').hidden = false;
+        $('#siteFooter').hidden = false;
+        document.title = 'Operation E Corp Breach — Cyber Range';
+        if (scroll) {
+          const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
+        }
+      }
+
+      function syncChallengeRoute() {
+        const id = new URLSearchParams(window.location.search).get('challenge');
+        if (id && MISSION_DETAILS[id]) openChallenge(id, { updateHistory: false, scroll: false });
+        else if (currentChallengeId) returnToBoard({ updateHistory: false, scroll: false });
+      }
+
+      function applyState(state) {
+        if (!state) return;
+        currentState = state;
+        const signedIn = Boolean(state.user);
+        const registerButton = $('#registerBtn');
+        const userChip = $('#userChip');
+        const scoreChip = $('#scoreChip');
+        registerButton.hidden = signedIn;
+        userChip.hidden = !signedIn;
+        scoreChip.hidden = !signedIn;
+        if (signedIn) {
+          const username = String(state.user);
+          $('#userName').textContent = username;
+          $('#userInitial').textContent = username.slice(0, 1).toUpperCase();
+          $('#scoreValue').textContent = Number(state.score || 0).toLocaleString();
+        }
+        (state.challenges || []).forEach(renderStageCard);
+        if (currentChallengeId) {
+          const activeChallenge = findChallenge(currentChallengeId);
+          renderMission(activeChallenge);
+          if (activeChallenge) document.title = `${activeChallenge.name} · Operation E Corp Breach`;
+        }
+      }
+
+      async function refreshState() {
+        const state = await api('/api/state');
+        applyState(state);
+        return state;
+      }
+
+      function renderScoreboard(rows) {
+        const body = $('#leaderboardBody');
+        if (!Array.isArray(rows) || rows.length === 0) {
+          body.innerHTML = '<tr><td colspan="4" class="table-state">No accepted flags yet. Be the first investigator to score.</td></tr>';
+          return;
+        }
+        body.innerHTML = rows.map((row, index) => `<tr>
+          <td class="${index === 0 ? 'rank-top' : ''}">${String(index + 1).padStart(2, '0')}</td>
+          <td>${escapeHTML(row.username)}</td>
+          <td>${Number(row.solves) || 0} / 6</td>
+          <td class="score-value">${Number(row.score || 0).toLocaleString()}</td>
+        </tr>`).join('');
+      }
+
+      async function refreshScoreboard(showError = false) {
+        const body = $('#leaderboardBody');
+        const button = $('#refreshScoreboard');
+        if (button) button.disabled = true;
+        try {
+          const data = await api('/api/scoreboard');
+          renderScoreboard(data.rows || []);
+        } catch (error) {
+          body.innerHTML = `<tr><td colspan="4" class="table-state">${escapeHTML(error.message || 'Scoreboard is unavailable.')}</td></tr>`;
+          if (showError) toast('Could not refresh the live scoreboard.', 'error');
+        } finally {
+          if (button) button.disabled = false;
+        }
+      }
+
+      function setFeedback(form, message, kind = '') {
+        const feedback = $('[data-feedback]', form);
+        if (!feedback) return;
+        feedback.className = `flag-feedback ${kind}`.trim();
+        feedback.textContent = message;
+      }
+
+      async function handleSubmit(form) {
+        const challenge = form.dataset.ch;
+        const flag = new FormData(form).get('flag');
+        const button = $('button[type="submit"]', form);
+        button.disabled = true;
+        button.innerHTML = 'Checking…';
+        setFeedback(form, 'Checking with the platform…');
+        try {
+          const data = await api('/api/submit', { method: 'POST', body: JSON.stringify({ challenge, flag }) });
+          if (data.correct) {
+            applyState(data.state);
+            const missionComplete = Boolean(data.state.user) && data.state.challenges.length === 6 && data.state.challenges.every(item => item.solved);
+            if (missionComplete) {
+              openCompletionModal(data.state);
+            } else {
+              toast(data.already ? 'This flag was already recorded.' : 'Flag accepted. The next challenge is now available.', 'success');
+              const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+              window.setTimeout(() => $('#missionAction button[data-open-ch]')?.scrollIntoView({ block: 'center', behavior: reduced ? 'auto' : 'smooth' }), 40);
+            }
+            refreshScoreboard();
+          } else {
+            setFeedback(form, 'Not accepted yet. Recheck the evidence and try again.', 'error');
+            $('input[name="flag"]', form)?.focus();
+          }
+        } catch (error) {
+          setFeedback(form, error.message || 'The flag could not be checked.', 'error');
+        } finally {
+          if (button.isConnected) {
+            button.disabled = false;
+            button.innerHTML = `Verify flag ${icons.arrow}`;
+          }
+        }
+      }
+
+      async function handleHint(button) {
+        const challenge = button.dataset.ch;
+        const index = Number(button.dataset.index);
+        button.disabled = true;
+        try {
+          const data = await api('/api/hint', { method: 'POST', body: JSON.stringify({ challenge, index }) });
+          applyState(data.state);
+          const hintList = $('#missionHints .hint-list');
+          if (hintList) hintList.scrollIntoView({ block: 'nearest', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+          toast(index === 0 ? 'Free hint revealed.' : `Hint revealed. ${data.state.penalty || 0} total hint points deducted.`, index === 0 ? 'success' : '');
+          refreshScoreboard();
+        } catch (error) {
+          button.disabled = false;
+          toast(error.message || 'Could not reveal that hint.', 'error');
+        }
+      }
+
+      async function logout() {
+        try {
+          await api('/api/logout', { method: 'POST', body: '{}' });
+          await refreshState();
+          toast('Signed out. Your progress remains recorded by the platform.');
+        } catch (error) {
+          toast(error.message || 'Could not sign out.', 'error');
+        }
+      }
+
+      $('#registerBtn').addEventListener('click', openAuth);
+      $('#closeAuth').addEventListener('click', closeAuth);
+      $('#logoutBtn').addEventListener('click', logout);
+      $('#refreshScoreboard').addEventListener('click', () => refreshScoreboard(true));
+      $('#backToBoard').addEventListener('click', returnToBoard);
+      $('#brandLink').addEventListener('click', event => {
+        if (currentChallengeId) {
+          event.preventDefault();
+          returnToBoard();
+        }
+      });
+      $('#closeCompletion').addEventListener('click', closeCompletionModal);
+      $('#downloadBadge').addEventListener('click', downloadBadgePNG);
+      $('#downloadBadgeSvg').addEventListener('click', downloadBadgeSVG);
+
+      authModal.addEventListener('click', event => {
+        if (event.target === authModal) closeAuth();
+      });
+      completionModal.addEventListener('click', event => {
+        if (event.target === completionModal) closeCompletionModal();
+      });
+      document.addEventListener('keydown', event => {
+        if (event.key !== 'Escape') return;
+        if (!completionModal.hidden) closeCompletionModal();
+        else if (!authModal.hidden) closeAuth();
+      });
+      window.addEventListener('popstate', syncChallengeRoute);
+      syncChallengeRoute();
+
+      $$('.nav-links a, .footer-links a').forEach(link => link.addEventListener('click', () => {
+        if (!authModal.hidden) closeAuth();
+      }));
+
+      authForm.addEventListener('submit', async event => {
+        event.preventDefault();
+        authError.textContent = '';
+        const formData = new FormData(authForm);
+        const payload = { username: formData.get('username'), password: formData.get('password') };
+        authSubmit.disabled = true;
+        authSubmit.textContent = 'Connecting…';
+        try {
+          let data;
+          try {
+            data = await api('/api/register', { method: 'POST', body: JSON.stringify(payload) });
+            toast('Callsign registered. Welcome to the investigation.', 'success');
+          } catch (error) {
+            if (error.status !== 409) throw error;
+            data = await api('/api/login', { method: 'POST', body: JSON.stringify(payload) });
+            toast('Signed in. Your investigation is ready.', 'success');
+          }
+          applyState(data.state);
+          closeAuth();
+          authForm.reset();
+          refreshScoreboard();
+        } catch (error) {
+          authError.textContent = error.message || 'Could not connect to the platform.';
+        } finally {
+          authSubmit.disabled = false;
+          authSubmit.innerHTML = `Create account / sign in ${icons.arrow}`;
+        }
+      });
+
+      challengeGrid.addEventListener('click', event => {
+        const link = event.target.closest('a.stage-link[data-open-ch]');
+        if (!link || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        openChallenge(link.dataset.openCh);
+      });
+      $('#missionView').addEventListener('click', event => {
+        const signInButton = event.target.closest('[data-action="mission-signin"]');
+        if (signInButton) { openAuth(); return; }
+        const hintButton = event.target.closest('[data-action="hint"]');
+        if (hintButton) { handleHint(hintButton); return; }
+        const completionButton = event.target.closest('[data-action="show-completion"]');
+        if (completionButton) { openCompletionModal(); return; }
+        const nextButton = event.target.closest('[data-open-ch]');
+        if (nextButton) openChallenge(nextButton.dataset.openCh);
+      });
+      $('#missionView').addEventListener('submit', event => {
+        const form = event.target.closest('form[data-action="submit"]');
+        if (!form) return;
+        event.preventDefault();
+        handleSubmit(form);
+      });
+
+      Promise.all([refreshState(), refreshScoreboard()]).catch(() => {
+        toast('The platform is temporarily unavailable. Please try again shortly.', 'error');
+        if (!$('#leaderboardBody').textContent.trim()) {
+          $('#leaderboardBody').innerHTML = '<tr><td colspan="4" class="table-state">Scores will appear when the platform is available.</td></tr>';
+        }
+      });
+
+      window.refreshCTF = () => Promise.all([refreshState(), refreshScoreboard()]);
+    })();
+  </script>
+</body>
+</html>

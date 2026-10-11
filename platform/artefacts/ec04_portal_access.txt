@@ -1,0 +1,18 @@
+E CORP - STAGE 4: THE COMPROMISED EMPLOYEE PORTAL
+=================================================
+The attacker's note recovered in Stage 3 exposed the internal portal
+and employee ID 1042.
+
+PORTAL ADDRESS:   http://127.0.0.1:8080
+(If this does not load, the portal container may be on another address -
+ ask your team/instructor for the correct one.)
+
+YOUR TASK
+  - Inspect the site the way an attacker would: view the page source,
+    read robots.txt, look for an exposed backup file, and probe the
+    employee API.
+  - Pull up the OPEN incident assigned to employee 1042.
+  - Recover the flag, and download the evidence file it links to - you
+    will need it for Stage 5.
+
+Submit the flag below in the format ECORP{...}.
