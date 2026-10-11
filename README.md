@@ -473,21 +473,20 @@ For the platform service, see [`platform/README.md`](platform/README.md). Additi
 
 ---
 
-## 🧩 Self-developed scripts
+## 🧩 Self-developed Scripts
 
-The project includes member-specific scripts or code relevant to each assigned component. The final submission should identify at least one self-developed script, exploit, solver or automation item for each member.
+The project includes self-developed scripts and automation tools created by each team member according to their assigned responsibilities. These scripts support platform deployment, challenge generation, testing, and validation.
 
 | Member | Script / Code | Purpose |
 |---|---|---|
-| Member 01 | `CTF Platform Architecture & Docker Deployment` | Platform deployment, architecture or automation support |
-| Member 02 | `stage03_crypto/generate_message.py` | Generates the EC-03 layered cryptography challenge artefact |
-| Member 03 | `stage05_network/generate_traffic.py` | Generates the EC-05 synthetic network traffic / PCAP evidence |
-| Member 04 | `member4_validate.sh` | Performs end-to-end integration, service, artefact and recovery validation |
+| Member 01 – Chanuka | `verify.sh`, `sync_artefacts.sh`, `platform/seed_flags.py`, `docker-compose.yml` | Validates the CTF platform, synchronizes challenge artefacts, configures server-side flag validation, and manages Docker deployment and architecture. |
+| Member 02 – Danidu | `stage03_crypto/generate_message.py` | Generates the EC-03 layered cryptography challenge artefact. |
+| Member 03 – Praween | `stage05_network/generate_traffic.py` | Generates synthetic network traffic and PCAP evidence for EC-05. |
+| Member 04 – Christina | `member4_validate.sh` | Performs integration testing, service availability checks, challenge artefact validation, and recovery verification. |
 
-Only implemented, tested and correctly attributed files should remain in this table in the final submission.
+Each member is responsible for demonstrating and explaining their own implemented scripts during the technical walkthrough.
 
 ---
-
 ## 🗂️ Project layout
 
 ```text
@@ -497,11 +496,11 @@ Ecorp-CTF-Arena/
 ├── build.sh                          # EC-01–EC-03 organizer build
 ├── sync_artefacts.sh                 # synchronize player evidence
 ├── verify.sh                         # organizer validation checks
-├── member4_validate.sh     
-├── member4_evidence/  
+├── member4_validate.sh
+├── member4_evidence/
 │   ├── test-results.txt
 │   ├── defects-and-fixes.txt
-│   └── reset-test.txt             
+│   └── reset-test.txt
 ├── docs/
 │   ├── assets/ecorp-ctf-arena-banner.svg
 │   ├── CTFD_SETUP.md
@@ -633,19 +632,19 @@ Confirm that `docs/assets/ecorp-ctf-arena-banner.svg` exists in the repository w
 
 ## ❓ FAQ
 
-**Do I need internet access to play?**  
+**Do I need internet access to play?**
 Once the Docker images are available, the platform itself has no external font or CDN dependency. The first image build may need access to the container registry.
 
-**Can I run it on a shared server?**  
+**Can I run it on a shared server?**
 Only in an isolated environment you control. The targets are intentionally vulnerable; the default Compose bindings are loopback-only.
 
-**Can players skip ahead?**  
+**Can players skip ahead?**
 No. Unlocks are enforced server-side against recorded solves.
 
-**Where do the answers live?**  
+**Where do the answers live?**
 In organizer-only files such as `private/`, `seed_flags.py`, and `secrets/`. Keep those files out of player distributions.
 
-**Can I add a seventh stage?**  
+**Can I add a seventh stage?**
 Yes. Follow the existing stage-folder pattern, seed its flag digest, register its evidence and prerequisite in the platform, then update the synchronization and verification scripts.
 
 ---
