@@ -2,7 +2,7 @@
   <h1>Ecorp-CTF-Arena</h1>
   <p><strong>Operation E Corp Breach</strong> — a six-stage, story-driven cybersecurity capture-the-flag range.</p>
   <p><em>Follow one incident from a forged alert to a compromised Linux host.</em></p>
-  <img src="./docs/assets/ecorp-ctf-arena-banner.svg" alt="Ecorp-CTF-Arena — Operation E Corp Breach" width="100%">
+  <img src="./docs/assets/ecorp-ctf-arena-banner.png" alt="Ecorp-CTF-Arena — Operation E Corp Breach" width="100%">
   <br><br>
   <a href="https://img.shields.io/badge/stages-6-5CFFC0?style=for-the-badge&amp;labelColor=06151b"><img alt="6 stages" src="https://img.shields.io/badge/stages-6-5CFFC0?style=for-the-badge&amp;labelColor=06151b"></a>
   <a href="https://img.shields.io/badge/base_points-1%2C000-2EE6FF?style=for-the-badge&amp;labelColor=06151b"><img alt="1,000 base points" src="https://img.shields.io/badge/base_points-1%2C000-2EE6FF?style=for-the-badge&amp;labelColor=06151b"></a>
